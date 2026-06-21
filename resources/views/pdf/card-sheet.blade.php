@@ -9,112 +9,93 @@
 
         @page {
             size: 210mm 297mm;
-            margin: 8mm;
+            margin: 6mm;
         }
 
-        /* ── Page header ── */
-        .page-header {
-            text-align: center;
-            margin-bottom: 3mm;
-            padding-bottom: 2.5mm;
-            border-bottom: 0.5pt solid #d1d5db;
-        }
-        .page-header h1 {
-            font-size: 11pt;
-            font-weight: bold;
-            color: #111827;
-        }
-        .page-header .meta {
-            font-size: 7pt;
-            color: #6b7280;
-            margin-top: 1mm;
-        }
-
-        /* ── Card grid (table-based for DomPDF) ── */
+        /* Outer card grid */
+        /* border-collapse merges adjacent borders - single line between cards */
         .cards-table {
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
         }
-        .cards-table td {
+        .cards-table td.card-cell {
             width: 50%;
-            padding: 1.5mm;
-            vertical-align: top;
-            height: 58mm;
+            height: 57mm;
+            border: 0.75pt solid #374151;
+            padding: 0;
+            vertical-align: middle;
         }
 
-        /* ── Individual card ── */
-        .card {
+        /* Inner card layout (text | QR) */
+        .card-inner {
             width: 100%;
-            height: 55mm;
-            border: 1pt solid #374151;
-            border-radius: 0;
-            padding: 3mm 3.5mm 2.5mm 3.5mm;
-            text-align: center;
+            height: 57mm;
+            border-collapse: collapse;
         }
-        .card-label {
-            font-size: 5.5pt;
+        .text-cell {
+            vertical-align: middle;
+            text-align: left;
+            padding: 3mm 2mm 3mm 4mm;
+        }
+        .qr-cell {
+            width: 38mm;
+            vertical-align: middle;
+            text-align: center;
+            padding: 2mm 2.5mm;
+        }
+
+        /* Card text content */
+        .card-sublabel {
+            font-size: 6pt;
             color: #9ca3af;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             margin-bottom: 1mm;
         }
-        .card-name {
-            font-size: 10pt;
+        .card-title {
+            font-size: 18pt;
             font-weight: bold;
             color: #111827;
-            margin-bottom: 1mm;
-            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2mm;
         }
-        .card-divider {
-            border: none;
-            border-top: 0.3pt solid #e5e7eb;
-            margin: 1mm 0;
+        .card-name {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 0.5mm;
         }
         .card-code {
-            font-size: 13pt;
+            font-size: 15pt;
             font-weight: bold;
             font-family: 'Courier New', monospace;
             color: #059669;
-            letter-spacing: 3px;
-            margin-bottom: 1mm;
+            letter-spacing: 2px;
+            margin-bottom: 1.5mm;
         }
-        .card-qr img {
-            width: 18mm;
-            height: 18mm;
-            display: block;
-            margin: 0 auto;
+        .card-project {
+            font-size: 8pt;
+            color: #6b7280;
         }
 
-        /* ── Page footer ── */
-        .page-footer {
-            text-align: center;
-            font-size: 6.5pt;
-            color: #9ca3af;
-            margin-top: 2.5mm;
-            padding-top: 2mm;
-            border-top: 0.3pt solid #e5e7eb;
+        /* QR image */
+        .qr-cell img {
+            width: 30mm;
+            height: 30mm;
+            display: block;
+            margin: 0 auto;
         }
 
         .page-break { page-break-before: always; }
     </style>
 </head>
 <body>
-@php $chunks = $beneficiaries->chunk(8); @endphp
+@php $chunks = $beneficiaries->chunk(10); @endphp
 
 @foreach ($chunks as $pageIndex => $pageCards)
     <div class="{{ $pageIndex > 0 ? 'page-break' : '' }}">
-
-        <div class="page-header">
-            <h1>{{ $project->name }}</h1>
-            <div class="meta">
-                Budget Code: {{ $project->budget_code }} &nbsp;&middot;&nbsp;
-                Generated: {{ now()->format('F j, Y') }} &nbsp;&middot;&nbsp;
-                Page {{ $pageIndex + 1 }}/{{ $chunks->count() }} &nbsp;&middot;&nbsp;
-                {{ $beneficiaries->count() }} total cards
-            </div>
-        </div>
-
         <table class="cards-table">
             @foreach ($pageCards->chunk(2) as $row)
                 <tr>
@@ -124,29 +105,29 @@
                                 QrCode::size(90)->margin(1)->generate($beneficiary->qr_token)
                             );
                         @endphp
-                        <td>
-                            <div class="card">
-                                <div class="card-label">Nutrition Program</div>
-                                <div class="card-name">{{ $beneficiary->name }}</div>
-                                <hr class="card-divider">
-                                <div class="card-code">{{ $beneficiary->shortcode }}</div>
-                                <div class="card-qr">
-                                    <img src="data:image/svg+xml;base64,{{ $qrSvg }}" alt="QR">
-                                </div>
-                            </div>
+                        <td class="card-cell">
+                            <table class="card-inner">
+                                <tr>
+                                    <td class="text-cell">
+                                        <div class="card-sublabel">Nutrition Program</div>
+                                        <div class="card-title">Meal Card</div>
+                                        <div class="card-name">{{ $beneficiary->name }}</div>
+                                        <div class="card-code">{{ $beneficiary->shortcode }}</div>
+                                        <div class="card-project">{{ $project->name }}</div>
+                                    </td>
+                                    <td class="qr-cell">
+                                        <img src="data:image/svg+xml;base64,{{ $qrSvg }}" alt="QR">
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     @endforeach
                     @if ($row->count() === 1)
-                        <td></td>
+                        <td class="card-cell"></td>
                     @endif
                 </tr>
             @endforeach
         </table>
-
-        <div class="page-footer">
-            Nutrition Monitoring System &nbsp;&middot;&nbsp; {{ $project->name }} &nbsp;&middot;&nbsp; Printed: {{ now()->format('d M Y H:i') }}
-        </div>
-
     </div>
 @endforeach
 </body>

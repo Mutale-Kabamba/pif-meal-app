@@ -2050,3 +2050,15 @@
 #70 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('C://Users//mukuk//...')
 #71 {main}
 "} 
+[2026-06-21 21:19:14] local.ERROR: Maximum execution time of 60 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:10)
+[stacktrace]
+#0 {main}
+"} 
+[2026-06-21 21:42:34] local.ERROR: Maximum execution time of 60 seconds exceeded {"userId":2,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/5a011b0798c78ff34f7e7ad1eeec8ba2.php:1)
+[stacktrace]
+#0 {main}
+"} 
+[2026-06-21 21:43:44] local.ERROR: Maximum execution time of 60 seconds exceeded {"userId":2,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/d103c7ca1818fe905b89a883ce5b33de.php:1)
+[stacktrace]
+#0 {main}
+"} 
