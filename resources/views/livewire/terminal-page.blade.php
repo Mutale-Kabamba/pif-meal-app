@@ -104,7 +104,11 @@
             <div class="scanner-container flex-1 relative bg-black flex items-center justify-center">
                 <div id="qr-reader" class="w-full h-full"></div>
                 <div x-show="!scanning" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
-                    <button @click="startScanner()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium">
+                    <div x-show="countdown > 0" class="text-center">
+                        <div class="text-6xl font-bold text-white tabular-nums mb-2" x-text="countdown"></div>
+                        <p class="text-sm text-emerald-300 uppercase tracking-widest">Scan next beneficiary...</p>
+                    </div>
+                    <button x-show="countdown === 0" @click="startScanner()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium">
                         Start Camera
                     </button>
                 </div>
@@ -135,9 +139,10 @@
             return {
                 scanning: false,
                 scanner: null,
+                processingLock: false,
+                countdown: 0,
 
                 initScanner() {
-                    // Listen for Livewire events
                     if (typeof Livewire !== 'undefined') {
                         Livewire.on('play-success-sound', () => this.playSound('success'));
                         Livewire.on('play-error-sound', () => this.playSound('error'));
@@ -145,20 +150,16 @@
                 },
 
                 startScanner() {
+                    this.countdown = 0;
                     this.scanning = true;
                     this.scanner = new Html5Qrcode('qr-reader');
-
                     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
                     this.scanner.start(
                         { facingMode: 'environment' },
                         config,
-                        (decodedText) => {
-                            this.onScanSuccess(decodedText);
-                        },
-                        () => {
-                            // Scan failure - ignore, keep trying
-                        }
+                        (decodedText) => { this.onScanSuccess(decodedText); },
+                        () => {}
                     ).catch(err => {
                         console.error('Scanner error:', err);
                         this.scanning = false;
@@ -166,14 +167,28 @@
                 },
 
                 onScanSuccess(decodedText) {
-                    // Prevent duplicate scans
-                    if (this.lastScan === decodedText && Date.now() - this.lastScanTime < 3000) {
-                        return;
-                    }
-                    this.lastScan = decodedText;
-                    this.lastScanTime = Date.now();
+                    if (this.processingLock) return;
+                    this.processingLock = true;
 
+                    // Stop the camera immediately after a successful read
+                    if (this.scanner) {
+                        this.scanner.stop().catch(() => {});
+                    }
+                    this.scanning = false;
+
+                    // Forward to Livewire
                     @this.processQrToken(decodedText);
+
+                    // Count down 3 → 0 then auto-restart
+                    this.countdown = 3;
+                    const tick = setInterval(() => {
+                        this.countdown--;
+                        if (this.countdown <= 0) {
+                            clearInterval(tick);
+                            this.processingLock = false;
+                            this.startScanner();
+                        }
+                    }, 1000);
                 },
 
                 playSound(type) {

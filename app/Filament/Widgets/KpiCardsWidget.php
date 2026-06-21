@@ -74,6 +74,10 @@ class KpiCardsWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->role === 'head_of_programmes';
+        $role = auth()->user()?->role;
+        return in_array($role, [
+            \App\Models\User::ROLE_HEAD_OF_PROGRAMMES,
+            \App\Models\User::ROLE_SYSTEM_MANAGER,
+        ]);
     }
 }

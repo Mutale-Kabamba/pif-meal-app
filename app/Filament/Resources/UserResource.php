@@ -19,7 +19,8 @@ class UserResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->isHeadOfProgrammes() ?? false;
+        $user = auth()->user();
+        return $user?->isHeadOfProgrammes() || $user?->isSystemManager();
     }
 
     public static function form(Form $form): Form
