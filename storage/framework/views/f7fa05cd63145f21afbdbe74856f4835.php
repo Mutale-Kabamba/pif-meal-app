@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Beneficiary Cards - {{ $project->name }}</title>
+    <title>Beneficiary Cards - <?php echo e($project->name); ?></title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Helvetica, Arial, sans-serif; }
@@ -100,54 +100,56 @@
     </style>
 </head>
 <body>
-@php $chunks = $beneficiaries->chunk(8); @endphp
+<?php $chunks = $beneficiaries->chunk(8); ?>
 
-@foreach ($chunks as $pageIndex => $pageCards)
-    <div class="{{ $pageIndex > 0 ? 'page-break' : '' }}">
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $chunks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pageIndex => $pageCards): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <div class="<?php echo e($pageIndex > 0 ? 'page-break' : ''); ?>">
 
         <div class="page-header">
-            <h1>{{ $project->name }}</h1>
+            <h1><?php echo e($project->name); ?></h1>
             <div class="meta">
-                Budget Code: {{ $project->budget_code }} &nbsp;&middot;&nbsp;
-                Generated: {{ now()->format('F j, Y') }} &nbsp;&middot;&nbsp;
-                Page {{ $pageIndex + 1 }}/{{ $chunks->count() }} &nbsp;&middot;&nbsp;
-                {{ $beneficiaries->count() }} total cards
+                Budget Code: <?php echo e($project->budget_code); ?> &nbsp;&middot;&nbsp;
+                Generated: <?php echo e(now()->format('F j, Y')); ?> &nbsp;&middot;&nbsp;
+                Page <?php echo e($pageIndex + 1); ?>/<?php echo e($chunks->count()); ?> &nbsp;&middot;&nbsp;
+                <?php echo e($beneficiaries->count()); ?> total cards
             </div>
         </div>
 
         <table class="cards-table">
-            @foreach ($pageCards->chunk(2) as $row)
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $pageCards->chunk(2); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
-                    @foreach ($row as $beneficiary)
-                        @php
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $row; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $beneficiary): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
                             $qrSvg = base64_encode(
                                 QrCode::size(90)->margin(1)->generate($beneficiary->qr_token)
                             );
-                        @endphp
+                        ?>
                         <td>
                             <div class="card">
                                 <div class="card-label">Nutrition Program</div>
-                                <div class="card-name">{{ $beneficiary->name }}</div>
+                                <div class="card-name"><?php echo e($beneficiary->name); ?></div>
                                 <hr class="card-divider">
-                                <div class="card-code">{{ $beneficiary->shortcode }}</div>
+                                <div class="card-code"><?php echo e($beneficiary->shortcode); ?></div>
                                 <div class="card-qr">
-                                    <img src="data:image/svg+xml;base64,{{ $qrSvg }}" alt="QR">
+                                    <img src="data:image/svg+xml;base64,<?php echo e($qrSvg); ?>" alt="QR">
                                 </div>
                             </div>
                         </td>
-                    @endforeach
-                    @if ($row->count() === 1)
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($row->count() === 1): ?>
                         <td></td>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </tr>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         </table>
 
         <div class="page-footer">
-            Nutrition Monitoring System &nbsp;&middot;&nbsp; {{ $project->name }} &nbsp;&middot;&nbsp; Printed: {{ now()->format('d M Y H:i') }}
+            Nutrition Monitoring System &nbsp;&middot;&nbsp; <?php echo e($project->name); ?> &nbsp;&middot;&nbsp; Printed: <?php echo e(now()->format('d M Y H:i')); ?>
+
         </div>
 
     </div>
-@endforeach
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 </body>
 </html>
+<?php /**PATH C:\Users\mukuk\Documents\GitHub\pif-meal-app\resources\views/pdf/card-sheet.blade.php ENDPATH**/ ?>

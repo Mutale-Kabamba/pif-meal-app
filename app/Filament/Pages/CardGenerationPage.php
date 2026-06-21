@@ -78,7 +78,7 @@ class CardGenerationPage extends Page implements HasForms
         $pdf = Pdf::loadView('pdf.card-sheet', [
             'project' => $project,
             'beneficiaries' => $beneficiaries,
-        ]);
+        ])->setPaper('a4', 'portrait');
 
         $filename = 'cards-' . $project->id . '-' . now()->format('Y-m-d-His') . '.pdf';
         $directory = 'public/generated_sheets';
