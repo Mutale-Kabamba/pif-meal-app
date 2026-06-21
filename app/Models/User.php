@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable;
 
@@ -22,6 +24,15 @@ class User extends Authenticatable
     public const ROLE_HEAD_OF_PROGRAMMES = 'head_of_programmes';
     public const ROLE_SYSTEM_MANAGER = 'system_manager';
     public const ROLE_COOK = 'cook';
+
+    /**
+     * Determine if the user can access the Filament admin panel in production.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Allows access to your seeded users or anyone with valid credentials on the cloud
+        return true;
+    }
 
     public function isHeadOfProgrammes(): bool
     {
