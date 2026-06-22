@@ -23,6 +23,7 @@ class User extends Authenticatable implements FilamentUser
 
     public const ROLE_HEAD_OF_PROGRAMMES = 'head_of_programmes';
     public const ROLE_SYSTEM_MANAGER = 'system_manager';
+    public const ROLE_PROJECT_OFFICER = 'project_officer';
     public const ROLE_COOK = 'cook';
 
     /**
@@ -42,6 +43,11 @@ class User extends Authenticatable implements FilamentUser
     public function isSystemManager(): bool
     {
         return $this->role === self::ROLE_SYSTEM_MANAGER;
+    }
+
+    public function isProjectOfficer(): bool
+    {
+        return $this->role === self::ROLE_PROJECT_OFFICER;
     }
 
     public function isCook(): bool

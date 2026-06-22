@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Models\Project;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -37,11 +38,32 @@ class UserResource extends Resource
                     ->maxLength(255),
                 Forms\Components\Select::make('role')
                     ->required()
-                    ->options([
-                        'head_of_programmes' => 'Head of Programmes',
-                        'system_manager' => 'System Manager',
-                        'cook' => 'Cook',
-                    ]),
+                    ->live()
+                    ->options(function () {
+                        $current = auth()->user();
+                        $all = [
+                            User::ROLE_HEAD_OF_PROGRAMMES => 'Head of Programmes',
+                            User::ROLE_SYSTEM_MANAGER     => 'System Manager',
+                            User::ROLE_PROJECT_OFFICER    => 'Project Officer',
+                            User::ROLE_COOK               => 'Cook',
+                        ];
+                        // System managers cannot create HoP or project officer accounts
+                        if ($current?->isSystemManager()) {
+                            unset($all[User::ROLE_HEAD_OF_PROGRAMMES]);
+                            unset($all[User::ROLE_PROJECT_OFFICER]);
+                        }
+                        return $all;
+                    }),
+                Forms\Components\Select::make('assigned_project_id')
+                    ->label('Assigned Project Stream')
+                    ->options(fn () => Project::where('is_active', true)->pluck('name', 'id'))
+                    ->searchable()
+                    ->nullable()
+                    ->required(fn (callable $get) => $get('role') === User::ROLE_PROJECT_OFFICER)
+                    ->visible(fn (callable $get) => in_array($get('role'), [
+                        User::ROLE_PROJECT_OFFICER,
+                        User::ROLE_COOK,
+                    ])),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->dehydrateStateUsing(fn ($state) => Hash::make($state))
@@ -58,11 +80,23 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('email')->searchable(),
                 Tables\Columns\TextColumn::make('role')
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        User::ROLE_HEAD_OF_PROGRAMMES => 'Head of Programmes',
+                        User::ROLE_SYSTEM_MANAGER     => 'System Manager',
+                        User::ROLE_PROJECT_OFFICER    => 'Project Officer',
+                        User::ROLE_COOK               => 'Cook',
+                        default                       => $state,
+                    })
                     ->color(fn (string $state): string => match ($state) {
-                        'head_of_programmes' => 'danger',
-                        'system_manager' => 'warning',
-                        default => 'info',
+                        User::ROLE_HEAD_OF_PROGRAMMES => 'danger',
+                        User::ROLE_SYSTEM_MANAGER     => 'warning',
+                        User::ROLE_PROJECT_OFFICER    => 'success',
+                        default                       => 'info',
                     }),
+                Tables\Columns\TextColumn::make('assignedProject.name')
+                    ->label('Assigned Project')
+                    ->placeholder('—')
+                    ->sortable(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

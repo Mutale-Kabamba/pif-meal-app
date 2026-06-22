@@ -14,15 +14,22 @@ class KitchenEfficiencyChart extends ChartWidget
 
     protected function getData(): array
     {
+        $todayStart = today()->startOfDay();
+        $todayEnd = today()->endOfDay();
+
+        // Single grouped query instead of one query per cook
+        $mealCounts = MealLog::selectRaw('served_by_user_id, COUNT(*) as total')
+            ->whereBetween('served_at', [$todayStart, $todayEnd])
+            ->groupBy('served_by_user_id')
+            ->pluck('total', 'served_by_user_id');
+
         $cooks = User::where('role', 'cook')->get();
         $labels = [];
         $data = [];
 
         foreach ($cooks as $cook) {
             $labels[] = $cook->name;
-            $data[] = MealLog::where('served_by_user_id', $cook->id)
-                ->whereDate('served_at', today())
-                ->count();
+            $data[] = $mealCounts->get($cook->id, 0);
         }
 
         return [
