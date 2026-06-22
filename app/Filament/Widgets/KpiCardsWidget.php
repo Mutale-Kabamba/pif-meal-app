@@ -16,59 +16,97 @@ class KpiCardsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        // Cache data for 5 minutes to allow fast tab navigation across the system
-        $statsData = Cache::remember('nms_dashboard_kpis', 300, function () {
+        $user       = auth()->user();
+        $isOfficer  = $user?->isProjectOfficer();
+        $projectId  = $user?->assigned_project_id;
+
+        // Separate cache bucket per project so officers never see global totals
+        $cacheKey  = $isOfficer ? "nms_kpis_project_{$projectId}" : 'nms_dashboard_kpis';
+
+        $statsData = Cache::remember($cacheKey, 300, function () use ($isOfficer, $projectId) {
+            $todayStart    = today()->startOfDay();
+            $todayEnd      = today()->endOfDay();
+            $weekStart     = now()->startOfWeek();
+            $weekEnd       = now()->endOfWeek();
+            $monthStart    = now()->startOfMonth();
+            $monthEnd      = now()->endOfMonth();
+
+            $mealsBase = MealLog::query();
+            $benefBase = Beneficiary::query();
+
+            if ($isOfficer && $projectId) {
+                $mealsBase->where('project_id', $projectId);
+                $benefBase->where('project_id', $projectId);
+            }
+
             return [
-                'activeProjects' => Project::where('is_active', true)->count(),
-                'totalBeneficiaries' => Beneficiary::count(),
-                'mealsToday' => MealLog::whereDate('served_at', today())->count(),
-                'mealsThisWeek' => MealLog::whereBetween('served_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-                'mealsThisMonth' => MealLog::whereMonth('served_at', now()->month)->whereYear('served_at', now()->year)->count(),
-                'turnoutRate' => $this->calculateTurnoutRate(),
+                'activeProjects'     => $isOfficer ? null : Project::where('is_active', true)->count(),
+                'totalBeneficiaries' => (clone $benefBase)->count(),
+                'mealsToday'         => (clone $mealsBase)->whereBetween('served_at', [$todayStart, $todayEnd])->count(),
+                'mealsThisWeek'      => (clone $mealsBase)->whereBetween('served_at', [$weekStart, $weekEnd])->count(),
+                'mealsThisMonth'     => (clone $mealsBase)->whereBetween('served_at', [$monthStart, $monthEnd])->count(),
+                'turnoutRate'        => $this->calculateTurnoutRate($isOfficer ? $projectId : null),
             ];
         });
 
-        return [
-            Stat::make('Active Projects', $statsData['activeProjects'])
+        $stats = [];
+
+        if (! $isOfficer) {
+            $stats[] = Stat::make('Active Projects', $statsData['activeProjects'])
                 ->description('Currently active streams')
                 ->descriptionIcon('heroicon-m-clipboard-document-list')
-                ->color('success'),
+                ->color('success');
+        }
 
-            Stat::make('Total Beneficiaries', $statsData['totalBeneficiaries'])
-                ->description('Registered individuals')
-                ->descriptionIcon('heroicon-m-users')
-                ->color('info'),
+        $stats[] = Stat::make($isOfficer ? 'My Project Beneficiaries' : 'Total Beneficiaries', $statsData['totalBeneficiaries'])
+            ->description($isOfficer ? 'Enrolled in your project' : 'Registered individuals')
+            ->descriptionIcon('heroicon-m-users')
+            ->color('info');
 
-            Stat::make('Meals Today', $statsData['mealsToday'])
-                ->description('Distributed today')
-                ->descriptionIcon('heroicon-m-cake')
-                ->color('warning'),
+        $stats[] = Stat::make('Meals Today', $statsData['mealsToday'])
+            ->description('Distributed today')
+            ->descriptionIcon('heroicon-m-cake')
+            ->color('warning');
 
-            Stat::make('This Week', $statsData['mealsThisWeek'])
-                ->description('Current week total')
-                ->descriptionIcon('heroicon-m-calendar-days')
-                ->color('primary'),
+        $stats[] = Stat::make('This Week', $statsData['mealsThisWeek'])
+            ->description('Current week total')
+            ->descriptionIcon('heroicon-m-calendar-days')
+            ->color('primary');
 
-            Stat::make('This Month', $statsData['mealsThisMonth'])
-                ->description('Current month total')
-                ->descriptionIcon('heroicon-m-clock')
-                ->color('indigo'),
+        $stats[] = Stat::make('This Month', $statsData['mealsThisMonth'])
+            ->description('Current month total')
+            ->descriptionIcon('heroicon-m-clock')
+            ->color('indigo');
 
-            Stat::make('Turnout Rate', $statsData['turnoutRate'] . '%')
-                ->description('Active population fed')
-                ->descriptionIcon('heroicon-m-chart-bar-square')
-                ->color('danger'),
-        ];
+        $stats[] = Stat::make('Turnout Rate', $statsData['turnoutRate'] . '%')
+            ->description('Active population fed')
+            ->descriptionIcon('heroicon-m-chart-bar-square')
+            ->color('danger');
+
+        return $stats;
     }
 
-    private function calculateTurnoutRate(): float
+    private function calculateTurnoutRate(?int $projectId = null): float
     {
-        $activeBeneficiaries = Beneficiary::where('is_active', true)->count();
+        $query = Beneficiary::where('is_active', true);
+        if ($projectId) {
+            $query->where('project_id', $projectId);
+        }
+        $activeBeneficiaries = $query->count();
+
         if ($activeBeneficiaries === 0) {
             return 0;
         }
 
-        $fedToday = MealLog::whereDate('served_at', today())->distinct('beneficiary_id')->count();
+        $todayStart = today()->startOfDay();
+        $todayEnd   = today()->endOfDay();
+
+        $fedQuery = MealLog::whereBetween('served_at', [$todayStart, $todayEnd]);
+        if ($projectId) {
+            $fedQuery->where('project_id', $projectId);
+        }
+        $fedToday = $fedQuery->distinct('beneficiary_id')->count('beneficiary_id');
+
         return round(($fedToday / $activeBeneficiaries) * 100, 1);
     }
 
@@ -78,6 +116,7 @@ class KpiCardsWidget extends BaseWidget
         return in_array($role, [
             \App\Models\User::ROLE_HEAD_OF_PROGRAMMES,
             \App\Models\User::ROLE_SYSTEM_MANAGER,
+            \App\Models\User::ROLE_PROJECT_OFFICER,
         ]);
     }
 }

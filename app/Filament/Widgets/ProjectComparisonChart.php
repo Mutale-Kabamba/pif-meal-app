@@ -14,16 +14,22 @@ class ProjectComparisonChart extends ChartWidget
 
     protected function getData(): array
     {
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+
+        // Single grouped query instead of one query per project
+        $mealCounts = MealLog::selectRaw('project_id, COUNT(*) as total')
+            ->whereBetween('served_at', [$startOfMonth, $endOfMonth])
+            ->groupBy('project_id')
+            ->pluck('total', 'project_id');
+
         $projects = Project::where('is_active', true)->get();
         $labels = [];
         $data = [];
 
         foreach ($projects as $project) {
             $labels[] = $project->name;
-            $data[] = MealLog::where('project_id', $project->id)
-                ->whereMonth('served_at', now()->month)
-                ->whereYear('served_at', now()->year)
-                ->count();
+            $data[] = $mealCounts->get($project->id, 0);
         }
 
         return [

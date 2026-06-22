@@ -23,13 +23,24 @@ class ProjectRegistersPage extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->role === 'head_of_programmes';
+        $role = auth()->user()?->role;
+        return in_array($role, [
+            \App\Models\User::ROLE_HEAD_OF_PROGRAMMES,
+            \App\Models\User::ROLE_PROJECT_OFFICER,
+        ]);
     }
 
     public function mount()
     {
-        $firstProject = Project::where('is_active', true)->first();
-        $this->selectedProjectId = $firstProject ? (string) $firstProject->id : '';
+        $user = auth()->user();
+
+        if ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            // Officers are locked to their own project
+            $this->selectedProjectId = (string) $user->assigned_project_id;
+        } else {
+            $firstProject = Project::where('is_active', true)->first();
+            $this->selectedProjectId = $firstProject ? (string) $firstProject->id : '';
+        }
         
         $this->filterMonth = (int) now()->month;
         $this->filterYear = (int) now()->year;
@@ -37,7 +48,15 @@ class ProjectRegistersPage extends Page
         $this->buildSmartCalendarStructure();
     }
 
-    public function updatedSelectedProjectId() { $this->buildSmartCalendarStructure(); }
+    public function updatedSelectedProjectId()
+    {
+        $user = auth()->user();
+        // Prevent project officers from switching away from their assigned project
+        if ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            $this->selectedProjectId = (string) $user->assigned_project_id;
+        }
+        $this->buildSmartCalendarStructure();
+    }
     public function updatedFilterMonth() { $this->buildSmartCalendarStructure(); }
     public function updatedFilterYear() { $this->buildSmartCalendarStructure(); }
 
@@ -108,9 +127,10 @@ class ProjectRegistersPage extends Page
         }
 
         return [
-            'projects' => $projects,
-            'beneficiaries' => $beneficiaries,
-            'mealMatrix' => $mealMatrix,
+            'projects'          => $projects,
+            'beneficiaries'     => $beneficiaries,
+            'mealMatrix'        => $mealMatrix,
+            'isProjectOfficer'  => auth()->user()?->isProjectOfficer() ?? false,
             'monthsList' => [
                 1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'May', 6 => 'Jun',
                 7 => 'Jul', 8 => 'Aug', 9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec'

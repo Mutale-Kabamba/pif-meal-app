@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\BeneficiaryResource\Pages;
 use App\Models\Beneficiary;
 use App\Models\Project;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -21,9 +22,25 @@ class BeneficiaryResource extends Resource
 
     public static function canAccess(): bool
     {
-        // Permits both Head of Programmes and System Managers to access management controls
         $role = auth()->user()?->role;
-        return $role === 'head_of_programmes' || $role === 'system_manager';
+        return in_array($role, [
+            User::ROLE_HEAD_OF_PROGRAMMES,
+            User::ROLE_SYSTEM_MANAGER,
+            User::ROLE_PROJECT_OFFICER,
+        ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = auth()->user();
+        $query = parent::getEloquentQuery();
+
+        // Project officers only see beneficiaries in their own project
+        if ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            $query->where('project_id', $user->assigned_project_id);
+        }
+
+        return $query;
     }
 
     public static function form(Form $form): Form
@@ -37,7 +54,13 @@ class BeneficiaryResource extends Resource
                             ->relationship('project', 'name')
                             ->required()
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->hidden(fn () => auth()->user()?->isProjectOfficer()),
+
+                        Forms\Components\Placeholder::make('project_locked')
+                            ->label('Project Stream')
+                            ->content(fn () => auth()->user()?->assignedProject?->name ?? '—')
+                            ->visible(fn () => auth()->user()?->isProjectOfficer()),
                         
                         Forms\Components\TextInput::make('name')
                             ->label('Full Beneficiary Name')

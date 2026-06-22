@@ -17,6 +17,12 @@ class CreateBeneficiary extends CreateRecord
         // Automated security token assignment definitions
         $data['shortcode'] = $service->generateShortcode();
         $data['qr_token'] = $service->generateQrToken();
+
+        // Project officers can only create beneficiaries in their own project
+        $user = auth()->user();
+        if ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            $data['project_id'] = $user->assigned_project_id;
+        }
         
         return $data;
     }
