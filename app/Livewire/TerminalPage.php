@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Beneficiary;
+use App\Models\MealLog;
 use App\Services\MealValidationService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -17,6 +18,8 @@ class TerminalPage extends Component
     public int $totalFedToday = 0;
     public string $cookName = '';
     public string $projectName = '';
+    /** QR tokens already served today — pre-loaded so the client blocklist survives logout */
+    public array $todayScannedTokens = [];
 
     protected MealValidationService $validationService;
 
@@ -28,9 +31,10 @@ class TerminalPage extends Component
     public function mount()
     {
         $user = Auth::user();
-        $this->cookName = $user->name;
+        $this->cookName    = $user->name;
         $this->projectName = $user->assignedProject?->name ?? 'All Projects';
         $this->updateStats();
+        $this->loadTodayScannedTokens();
     }
 
     public function updatedSearch()
@@ -102,6 +106,11 @@ class TerminalPage extends Component
             return;
         }
 
+        // Silently enforce 1-scan-per-day — no alert, no anomaly log
+        if ($this->validationService->hasReceivedMealToday($beneficiary, 'standard_ration')) {
+            return;
+        }
+
         $result = $this->validationService->validate($beneficiary, Auth::user());
 
         if ($result->success) {
@@ -122,6 +131,14 @@ class TerminalPage extends Component
             'message' => $message,
         ];
         $this->dispatch('alert-shown');
+    }
+
+    private function loadTodayScannedTokens(): void
+    {
+        $this->todayScannedTokens = MealLog::whereDate('served_at', today())
+            ->join('beneficiaries', 'meal_logs.beneficiary_id', '=', 'beneficiaries.id')
+            ->pluck('beneficiaries.qr_token')
+            ->toArray();
     }
 
     private function updateStats()
