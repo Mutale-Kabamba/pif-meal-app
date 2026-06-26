@@ -25,24 +25,7 @@ class MealValidationService
             );
         }
 
-        // 2. Check cook assignment
-        if ($cook->assigned_project_id && $cook->assigned_project_id !== $beneficiary->project_id) {
-            $this->logAnomaly($beneficiary, $cook, $mealType, 'Cook not assigned to this project');
-            return ValidationResult::invalid(
-                "Access denied: You are not assigned to {$beneficiary->project->name}.",
-                ['project' => $beneficiary->project->name]
-            );
-        }
-
-        // 3. Check meal time windows (optional)
-        if (!$this->isWithinMealWindow($mealType)) {
-            return ValidationResult::invalid(
-                "Meal window closed: {$mealType} is not being served at this time.",
-                ['meal_type' => $mealType]
-            );
-        }
-
-        // 4. Check for duplicate
+        // 2. Check for duplicate
         if ($this->hasReceivedMealToday($beneficiary, $mealType)) {
             $existingLog = MealLog::where('beneficiary_id', $beneficiary->id)
                 ->where('meal_type', $mealType)
@@ -63,7 +46,7 @@ class MealValidationService
             );
         }
 
-        // 5. Record the meal
+        // 3. Record the meal
         $mealLog = $this->recordMeal($beneficiary, $cook, $mealType);
 
         return ValidationResult::approved(

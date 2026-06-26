@@ -56,10 +56,6 @@ class TerminalPage extends Component
                   ->orWhere('name', 'like', '%' . $query . '%');
             });
 
-        if ($user->assigned_project_id) {
-            $beneficiaries->where('project_id', $user->assigned_project_id);
-        }
-
         $this->matches = $beneficiaries
             ->limit(5)
             ->get()
@@ -131,11 +127,9 @@ class TerminalPage extends Component
     private function updateStats()
     {
         $user = Auth::user();
-        $query = \App\Models\MealLog::query()->whereDate('served_at', today());
-
-        if ($user->assigned_project_id) {
-            $query->where('project_id', $user->assigned_project_id);
-        }
+        $query = \App\Models\MealLog::query()
+            ->whereDate('served_at', today())
+            ->where('served_by_user_id', $user->id);
 
         $this->totalFedToday = $query->count();
     }

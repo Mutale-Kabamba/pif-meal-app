@@ -103,15 +103,6 @@
             </div>
             <div class="scanner-container flex-1 relative bg-black flex items-center justify-center">
                 <div id="qr-reader" class="w-full h-full"></div>
-                <div x-show="!scanning" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
-                    <div x-show="countdown > 0" class="text-center">
-                        <div class="text-6xl font-bold text-white tabular-nums mb-2" x-text="countdown"></div>
-                        <p class="text-sm text-emerald-300 uppercase tracking-widest">Scan next beneficiary...</p>
-                    </div>
-                    <button x-show="countdown === 0" @click="startScanner()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium">
-                        Start Camera
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -140,17 +131,18 @@
                 scanning: false,
                 scanner: null,
                 processingLock: false,
-                countdown: 0,
 
                 initScanner() {
                     if (typeof Livewire !== 'undefined') {
                         Livewire.on('play-success-sound', () => this.playSound('success'));
                         Livewire.on('play-error-sound', () => this.playSound('error'));
                     }
+                    // Start camera immediately on page load
+                    this.$nextTick(() => this.startScanner());
                 },
 
                 startScanner() {
-                    this.countdown = 0;
+                    if (this.scanning) return; // already running
                     this.scanning = true;
                     this.scanner = new Html5Qrcode('qr-reader');
                     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
@@ -170,25 +162,12 @@
                     if (this.processingLock) return;
                     this.processingLock = true;
 
-                    // Stop the camera immediately after a successful read
-                    if (this.scanner) {
-                        this.scanner.stop().catch(() => {});
-                    }
-                    this.scanning = false;
-
-                    // Forward to Livewire
+                    // Camera stays on — just forward to Livewire
                     @this.processQrToken(decodedText);
 
-                    // Count down 3 → 0 then auto-restart
-                    this.countdown = 3;
-                    const tick = setInterval(() => {
-                        this.countdown--;
-                        if (this.countdown <= 0) {
-                            clearInterval(tick);
-                            this.processingLock = false;
-                            this.startScanner();
-                        }
-                    }, 1000);
+                    // Release lock after 2.5 s to prevent the same card
+                    // being re-read while still in front of the camera
+                    setTimeout(() => { this.processingLock = false; }, 2500);
                 },
 
                 playSound(type) {
