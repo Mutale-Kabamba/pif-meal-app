@@ -101,7 +101,8 @@
                     Active
                 </span>
             </div>
-            <div class="scanner-container flex-1 relative bg-black flex items-center justify-center">
+            {{-- wire:ignore prevents Livewire from touching the camera DOM on re-renders --}}
+            <div wire:ignore class="scanner-container flex-1 relative bg-black flex items-center justify-center">
                 <div id="qr-reader" class="w-full h-full"></div>
                 <!-- Start Camera button (shown before first start) -->
                 <div x-show="!scanning" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
