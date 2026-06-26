@@ -103,10 +103,18 @@
             </div>
             <div class="scanner-container flex-1 relative bg-black flex items-center justify-center">
                 <div id="qr-reader" class="w-full h-full"></div>
+                <!-- Start Camera button (shown before first start) -->
                 <div x-show="!scanning" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
                     <button @click="startScanner()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium">
                         Start Camera
                     </button>
+                </div>
+                <!-- Countdown overlay (camera stays on underneath) -->
+                <div x-show="countdown > 0" x-transition class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 pointer-events-none">
+                    <div class="text-center">
+                        <div class="text-7xl font-bold text-white tabular-nums" x-text="countdown"></div>
+                        <p class="text-sm text-emerald-300 uppercase tracking-widest mt-2">Next scan ready in...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -136,6 +144,7 @@
                 scanning: false,
                 scanner: null,
                 processingLock: false,
+                countdown: 0,
                 scannedTokens: new Set(),   // tokens processed this session
 
                 initScanner() {
@@ -174,8 +183,15 @@
                     // Camera stays on — just forward to Livewire
                     @this.processQrToken(decodedText);
 
-                    // Short debounce so the camera doesn't thrash on a slow read
-                    setTimeout(() => { this.processingLock = false; }, 2000);
+                    // 3-second countdown, then release lock
+                    this.countdown = 3;
+                    const tick = setInterval(() => {
+                        this.countdown--;
+                        if (this.countdown <= 0) {
+                            clearInterval(tick);
+                            this.processingLock = false;
+                        }
+                    }, 1000);
                 },
 
                 playSound(type) {
