@@ -165,9 +165,9 @@
                     // Camera stays on — just forward to Livewire
                     @this.processQrToken(decodedText);
 
-                    // Release lock after 2.5 s to prevent the same card
+                    // Release lock after 5 s to prevent the same card
                     // being re-read while still in front of the camera
-                    setTimeout(() => { this.processingLock = false; }, 2500);
+                    setTimeout(() => { this.processingLock = false; }, 5000);
                 },
 
                 playSound(type) {
