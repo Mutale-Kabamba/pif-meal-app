@@ -40,13 +40,18 @@ if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:your-key-here-change-in-productio
     php artisan key:generate --force
 fi
 
-# Run migrations
-echo "Running database migrations..."
-php artisan migrate --force
+# Run migrations (or fresh reset if RESET_DB=true is set)
+if [ "${RESET_DB:-false}" = "true" ]; then
+    echo "!!! RESET_DB=true detected — wiping all tables and re-seeding !!!"
+    php artisan migrate:fresh --seed --force
+    echo "Reset complete. Remove RESET_DB from environment variables to prevent this on the next deploy."
+else
+    echo "Running database migrations..."
+    php artisan migrate --force
 
-# Seed database if no users exist
-echo "Checking if seeding is needed..."
-USER_COUNT=$(php -r "
+    # Seed database if no users exist
+    echo "Checking if seeding is needed..."
+    USER_COUNT=$(php -r "
 require 'vendor/autoload.php';
 \$app = require_once 'bootstrap/app.php';
 \$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class);
@@ -58,11 +63,12 @@ try {
 }
 " 2>/dev/null || echo "0")
 
-if [ "$USER_COUNT" = "0" ]; then
-    echo "Seeding database with default data..."
-    php artisan db:seed --force
-else
-    echo "Database already seeded ($USER_COUNT users found)."
+    if [ "$USER_COUNT" = "0" ]; then
+        echo "Seeding database with default data..."
+        php artisan db:seed --force
+    else
+        echo "Database already seeded ($USER_COUNT users found)."
+    fi
 fi
 
 # Clear and cache config
