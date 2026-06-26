@@ -23,13 +23,15 @@ class BeneficiarySeeder extends Seeder
             for ($i = 0; $i < 15; $i++) {
                 $firstName = $firstNames[($projectIndex * 5 + $i) % count($firstNames)];
                 $lastName = $lastNames[($i * 3) % count($lastNames)];
-                Beneficiary::create([
-                    'project_id' => $project->id,
-                    'name' => "{$firstName} {$lastName}",
-                    'shortcode' => $this->generateUniqueShortcode(),
-                    'qr_token' => (string) Str::uuid(),
-                    'is_active' => true,
-                ]);
+                $name = "{$firstName} {$lastName}";
+                Beneficiary::firstOrCreate(
+                    ['name' => $name, 'project_id' => $project->id],
+                    [
+                        'shortcode' => $this->generateUniqueShortcode(),
+                        'qr_token'  => (string) Str::uuid(),
+                        'is_active' => true,
+                    ]
+                );
             }
         }
     }
