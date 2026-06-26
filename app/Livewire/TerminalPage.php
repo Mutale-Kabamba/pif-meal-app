@@ -97,6 +97,7 @@ class TerminalPage extends Component
 
     public function processQrToken(string $token)
     {
+        $token = trim($token);
         $beneficiary = Beneficiary::where('qr_token', $token)->first();
 
         if (!$beneficiary) {
