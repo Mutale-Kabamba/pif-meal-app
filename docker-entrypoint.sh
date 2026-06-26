@@ -3,10 +3,18 @@ set -e
 
 echo "=== Nutrition Monitoring System - Startup ==="
 
-# Ensure database file exists
-if [ ! -f /var/www/html/database/database.sqlite ]; then
-    echo "Creating SQLite database..."
-    touch /var/www/html/database/database.sqlite
+# Only set up SQLite when no external DB is configured
+DB_DRIVER="${DB_CONNECTION:-sqlite}"
+
+if [ "$DB_DRIVER" = "sqlite" ]; then
+    if [ ! -f /var/www/html/database/database.sqlite ]; then
+        echo "Creating SQLite database..."
+        touch /var/www/html/database/database.sqlite
+    fi
+    chown -R www-data:www-data /var/www/html/database
+    chmod 775 /var/www/html/database/database.sqlite
+else
+    echo "Using external database ($DB_DRIVER) — skipping SQLite setup."
 fi
 
 # Ensure storage symlink exists
@@ -15,12 +23,16 @@ if [ ! -L /var/www/html/public/storage ]; then
     ln -sf /var/www/html/storage/app/public /var/www/html/public/storage
 fi
 
-# Set permissions
-chown -R www-data:www-data /var/www/html/database
-chmod 775 /var/www/html/database/database.sqlite
+# Set permissions for storage (always needed)
 chown -R www-data:www-data /var/www/html/storage
 chmod -R 775 /var/www/html/storage
 chown -R www-data:www-data /var/www/html/bootstrap/cache
+
+# Set SQLite-specific permissions only when applicable
+if [ "$DB_DRIVER" = "sqlite" ]; then
+    chown -R www-data:www-data /var/www/html/database
+    chmod 775 /var/www/html/database/database.sqlite
+fi
 
 # Generate app key if not set
 if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:your-key-here-change-in-production=" ]; then
