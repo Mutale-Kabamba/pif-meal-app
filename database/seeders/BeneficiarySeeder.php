@@ -13,27 +13,7 @@ class BeneficiarySeeder extends Seeder
 
     public function run(): void
     {
-        $projects = Project::all();
-        $firstNames = ['Amina', 'Fatima', 'Hassan', 'Ibrahim', 'Mariam', 'Omar', 'Zainab', 'Yusuf', 'Khadija', 'Abdi', 'Sahra', 'Mohamed', 'Halima', 'Ali', 'Nimo'];
-        $lastNames = ['Hussein', 'Omar', 'Diallo', 'Traore', 'Mensah', 'Kamara', 'Conteh', 'Sesay', 'Jalloh', 'Turay', 'Koroma', 'Bangura', 'Dumbuya', 'Sankoh', 'Fofana'];
-
-        $projectIndex = 0;
-        foreach ($projects as $project) {
-            $projectIndex++;
-            for ($i = 0; $i < 15; $i++) {
-                $firstName = $firstNames[($projectIndex * 5 + $i) % count($firstNames)];
-                $lastName = $lastNames[($i * 3) % count($lastNames)];
-                $name = "{$firstName} {$lastName}";
-                Beneficiary::firstOrCreate(
-                    ['name' => $name, 'project_id' => $project->id],
-                    [
-                        'shortcode' => $this->generateUniqueShortcode(),
-                        'qr_token'  => (string) Str::uuid(),
-                        'is_active' => true,
-                    ]
-                );
-            }
-        }
+        // Beneficiaries are imported via Excel — no sample data seeded.
     }
 
     private function generateUniqueShortcode(): string

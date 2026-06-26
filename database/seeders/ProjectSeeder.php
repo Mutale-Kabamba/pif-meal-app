@@ -9,35 +9,44 @@ class ProjectSeeder extends Seeder
 {
     public function run(): void
     {
-        // Update or establish baseline projects with real world schedule structures
-        Project::updateOrCreate(
-            ['budget_code' => 'MHI-2024-001'],
+        $teams = [
             [
-                'name' => 'Maternal Health Initiative',
-                'daily_meal_limit_per_beneficiary' => 1,
-                'is_active' => true,
-                'description' => 'Monday: Nshima + Beef/Chicken/Sausage & Veg. Tuesday: Rice/Nshima + Beans & Veg. Wednesday: Pounded Maize + Groundnuts. Thursday: Nshima + Chicken/Sausage/Beef & Veg. Friday: Buns, Milk & Bananas.'
-            ]
-        );
+                'budget_code' => 'FB-SB-2024',
+                'name'        => 'Senior Boys Team',
+                'description' => 'Football — Senior Boys',
+            ],
+            [
+                'budget_code' => 'FB-SG-2024',
+                'name'        => 'Senior Girls Team',
+                'description' => 'Football — Senior Girls',
+            ],
+            [
+                'budget_code' => 'FB-U14B-2024',
+                'name'        => 'Under 14 Boys Team',
+                'description' => 'Football — Under 14 Boys',
+            ],
+            [
+                'budget_code' => 'FB-U17G-2024',
+                'name'        => 'Under 17 Girls Team',
+                'description' => 'Football — Under 17 Girls',
+            ],
+            [
+                'budget_code' => 'FB-U20B-2024',
+                'name'        => 'Under 20 Boys Team',
+                'description' => 'Football — Under 20 Boys',
+            ],
+        ];
 
-        Project::updateOrCreate(
-            ['budget_code' => 'EDR-2024-001'],
-            [
-                'name' => 'Emergency Drought Response',
-                'daily_meal_limit_per_beneficiary' => 2,
-                'is_active' => true,
-                'description' => 'Standard Emergency Rations schedule.'
-            ]
-        );
-
-        Project::updateOrCreate(
-            ['budget_code' => 'SFP-2024-001'],
-            [
-                'name' => 'School Feeding Program',
-                'daily_meal_limit_per_beneficiary' => 1,
-                'is_active' => true,
-                'description' => 'Weekly nutritional standard menu rules.'
-            ]
-        );
+        foreach ($teams as $team) {
+            Project::updateOrCreate(
+                ['budget_code' => $team['budget_code']],
+                [
+                    'name'                             => $team['name'],
+                    'daily_meal_limit_per_beneficiary' => 1,
+                    'is_active'                        => true,
+                    'description'                      => $team['description'],
+                ]
+            );
+        }
     }
 }

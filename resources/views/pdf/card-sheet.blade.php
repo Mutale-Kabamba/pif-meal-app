@@ -80,6 +80,21 @@
             color: #6b7280;
         }
 
+        /* Literacy badge */
+        .literacy-badge {
+            display: inline-block;
+            font-size: 6pt;
+            font-weight: bold;
+            color: #1d4ed8;
+            background: #dbeafe;
+            border: 0.5pt solid #93c5fd;
+            border-radius: 2pt;
+            padding: 0.5mm 1.5mm;
+            margin-top: 1.5mm;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         /* QR image */
         .qr-cell img {
             width: 30mm;
@@ -114,6 +129,9 @@
                                         <div class="card-name">{{ $beneficiary->name }}</div>
                                         <div class="card-code">{{ $beneficiary->shortcode }}</div>
                                         <div class="card-project">{{ $project->name }}</div>
+                                        @if($beneficiary->literacy_enrolled)
+                                            <div class="literacy-badge">Literacy</div>
+                                        @endif
                                     </td>
                                     <td class="qr-cell">
                                         <img src="data:image/svg+xml;base64,{{ $qrSvg }}" alt="QR">

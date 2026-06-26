@@ -55,9 +55,10 @@ class BeneficiaryImport implements ToModel, WithHeadingRow, WithValidation, Skip
         }
 
         $beneficiary = new Beneficiary([
-            'project_id' => $projectId,
-            'name'       => trim($row['name']),
-            'is_active'  => filter_var($row['is_active'] ?? 1, FILTER_VALIDATE_BOOLEAN),
+            'project_id'        => $projectId,
+            'name'              => trim($row['name']),
+            'is_active'         => filter_var($row['is_active'] ?? 1, FILTER_VALIDATE_BOOLEAN),
+            'literacy_enrolled' => filter_var($row['literacy_enrolled'] ?? 0, FILTER_VALIDATE_BOOLEAN),
         ]);
 
         // Auto-generate shortcode and QR token

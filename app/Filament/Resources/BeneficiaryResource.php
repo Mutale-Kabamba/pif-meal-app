@@ -77,6 +77,12 @@ class BeneficiaryResource extends Resource
                             ->label('Enrolled Active Status')
                             ->default(true)
                             ->inline(false),
+
+                        Forms\Components\Toggle::make('literacy_enrolled')
+                            ->label('Literacy Programme')
+                            ->helperText('Also attends the Literacy Project')
+                            ->default(false)
+                            ->inline(false),
                     ])->columns(2)
             ]);
     }
@@ -108,6 +114,15 @@ class BeneficiaryResource extends Resource
                     ->label('Status')
                     ->boolean()
                     ->sortable(),
+
+                Tables\Columns\IconColumn::make('literacy_enrolled')
+                    ->label('Literacy')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-academic-cap')
+                    ->falseIcon('heroicon-o-minus')
+                    ->trueColor('info')
+                    ->falseColor('gray')
+                    ->sortable(),
                 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Enrolled Date')
@@ -119,10 +134,14 @@ class BeneficiaryResource extends Resource
                 Tables\Filters\SelectFilter::make('project')
                     ->relationship('project', 'name')
                     ->label('Filter By Project Stream'),
-                
+
                 Tables\Filters\Filter::make('is_active')
                     ->query(fn (Builder $query): Builder => $query->where('is_active', true))
                     ->label('Active Beneficiaries Only'),
+
+                Tables\Filters\Filter::make('literacy_enrolled')
+                    ->query(fn (Builder $query): Builder => $query->where('literacy_enrolled', true))
+                    ->label('Literacy Enrolled Only'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

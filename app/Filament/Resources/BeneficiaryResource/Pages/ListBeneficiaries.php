@@ -25,9 +25,9 @@ class ListBeneficiaries extends ListRecords
                 ->action(function () {
                     return response()->streamDownload(function () {
                         $out = fopen('php://output', 'w');
-                        fputcsv($out, ['name', 'project_budget_code', 'is_active']);
-                        fputcsv($out, ['Amina Hussein', 'MHI-2024-001', '1']);
-                        fputcsv($out, ['Omar Diallo', 'EDR-2024-001', '1']);
+                        fputcsv($out, ['name', 'project_budget_code', 'is_active', 'literacy_enrolled']);
+                        fputcsv($out, ['John Banda', 'FB-SB-2024', '1', '0']);
+                        fputcsv($out, ['Mary Phiri', 'FB-SG-2024', '1', '1']);
                         fclose($out);
                     }, 'beneficiaries-import-template.csv', ['Content-Type' => 'text/csv']);
                 }),
