@@ -103,6 +103,11 @@
             </div>
             <div class="scanner-container flex-1 relative bg-black flex items-center justify-center">
                 <div id="qr-reader" class="w-full h-full"></div>
+                <div x-show="!scanning" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
+                    <button @click="startScanner()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium">
+                        Start Camera
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -131,14 +136,15 @@
                 scanning: false,
                 scanner: null,
                 processingLock: false,
+                scannedTokens: new Set(),   // tokens processed this session
 
                 initScanner() {
                     if (typeof Livewire !== 'undefined') {
                         Livewire.on('play-success-sound', () => this.playSound('success'));
                         Livewire.on('play-error-sound', () => this.playSound('error'));
                     }
-                    // Start camera immediately on page load
-                    this.$nextTick(() => this.startScanner());
+                    // Pre-populate blocklist with cards already served today
+                    @json($todayScannedTokens).forEach(t => this.scannedTokens.add(t));
                 },
 
                 startScanner() {
@@ -160,14 +166,16 @@
 
                 onScanSuccess(decodedText) {
                     if (this.processingLock) return;
+                    if (this.scannedTokens.has(decodedText)) return; // already done this session
+
                     this.processingLock = true;
+                    this.scannedTokens.add(decodedText); // block for the rest of the session
 
                     // Camera stays on — just forward to Livewire
                     @this.processQrToken(decodedText);
 
-                    // Release lock after 5 s to prevent the same card
-                    // being re-read while still in front of the camera
-                    setTimeout(() => { this.processingLock = false; }, 5000);
+                    // Short debounce so the camera doesn't thrash on a slow read
+                    setTimeout(() => { this.processingLock = false; }, 2000);
                 },
 
                 playSound(type) {
