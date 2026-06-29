@@ -1,19 +1,49 @@
 <x-filament-panels::page>
     <div class="space-y-4">
         <div class="p-4 bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+
+                {{-- Programme Scope (admins only) --}}
+                @unless($lockScope)
                 <div>
-                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Project Stream Boundary</label>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Programme Scope</label>
+                    <select wire:model.live="scope" class="w-full text-xs rounded-lg border-gray-300 py-1.5 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                        <option value="all">All Programmes</option>
+                        <option value="education">Education Only</option>
+                        <option value="football">Football Only</option>
+                    </select>
+                </div>
+                @endunless
+
+                {{-- Project --}}
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Project</label>
                     <select wire:model.live="selectedProjectId" @disabled($lockProject) class="w-full text-xs rounded-lg border-gray-300 py-1.5 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed">
-                        <option value="">-- Select Project --</option>
+                        @unless($lockProject)
+                            <option value="">— All in Scope —</option>
+                        @endunless
                         @foreach($projects as $proj)
                             <option value="{{ $proj->id }}">{{ $proj->name }}</option>
                         @endforeach
                     </select>
                 </div>
 
+                {{-- Team (football projects only, not locked coaches) --}}
+                @if($showTeamFilter)
                 <div>
-                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Target Month</label>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Team</label>
+                    <select wire:model.live="selectedTeamId" class="w-full text-xs rounded-lg border-gray-300 py-1.5 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                        <option value="">— All Teams —</option>
+                        @foreach($teams as $team)
+                            <option value="{{ $team->id }}">{{ $team->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                {{-- Month --}}
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Month</label>
                     <select wire:model.live="filterMonth" class="w-full text-xs rounded-lg border-gray-300 py-1.5 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                         @foreach($monthsList as $num => $name)
                             <option value="{{ $num }}">{{ $name }}</option>
@@ -21,14 +51,24 @@
                     </select>
                 </div>
 
+                {{-- Year --}}
                 <div>
-                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Target Calendar Year</label>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Year</label>
                     <select wire:model.live="filterYear" class="w-full text-xs rounded-lg border-gray-300 py-1.5 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                         @foreach($yearsList as $yr)
                             <option value="{{ $yr }}">{{ $yr }}</option>
                         @endforeach
                     </select>
                 </div>
+            </div>
+
+            {{-- Register scope summary strip --}}
+            <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Viewing:</span>
+                <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{{ $registerLabel }}</span>
+                <span class="ml-auto text-[10px] text-gray-400">
+                    {{ $beneficiaries->count() }} beneficiar{{ $beneficiaries->count() === 1 ? 'y' : 'ies' }}
+                </span>
             </div>
         </div>
 
