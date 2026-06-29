@@ -45,12 +45,14 @@ class KpiCardsWidget extends BaseWidget
 
             if ($isCoach && $teamId) {
                 // Scope to the coach's own team
-                $benefBase->where('team_id', $teamId);
                 $teamBenefIds = Beneficiary::where('team_id', $teamId)->pluck('id');
+                $benefBase->whereIn('id', $teamBenefIds);
                 $mealsBase->whereIn('beneficiary_id', $teamBenefIds);
             } elseif ($isOfficer && $projectId) {
-                $benefBase->inProject($projectId);
-                $mealsBase->where('project_id', $projectId);
+                // Scope by enrolled beneficiaries so dual-enrolled meals are counted
+                $projectBenefIds = Beneficiary::inProject($projectId)->pluck('id');
+                $benefBase->whereIn('id', $projectBenefIds);
+                $mealsBase->whereIn('beneficiary_id', $projectBenefIds);
             }
 
             return [
@@ -136,7 +138,8 @@ class KpiCardsWidget extends BaseWidget
             $teamBenefIds = Beneficiary::where('team_id', $teamId)->pluck('id');
             $fedQuery->whereIn('beneficiary_id', $teamBenefIds);
         } elseif ($projectId) {
-            $fedQuery->where('project_id', $projectId);
+            $projectBenefIds = Beneficiary::inProject($projectId)->pluck('id');
+            $fedQuery->whereIn('beneficiary_id', $projectBenefIds);
         }
 
         $fedToday = $fedQuery->distinct('beneficiary_id')->count('beneficiary_id');
