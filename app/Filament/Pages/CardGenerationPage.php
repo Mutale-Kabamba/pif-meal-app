@@ -68,7 +68,7 @@ class CardGenerationPage extends Page implements HasForms
         }
 
         $project = Project::find($projectId);
-        $beneficiaries = Beneficiary::where('project_id', $projectId)->where('is_active', true)->get();
+        $beneficiaries = Beneficiary::inProject((int) $projectId)->where('is_active', true)->get();
 
         if ($beneficiaries->isEmpty()) {
             Notification::make()->title('No active beneficiaries found for this project.')->warning()->send();

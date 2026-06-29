@@ -98,7 +98,7 @@ class MealValidationService
     {
         return MealLog::create([
             'beneficiary_id'    => $beneficiary->id,
-            'project_id'        => $beneficiary->project_id,
+            'project_id'        => $cook->assigned_project_id,
             'served_by_user_id' => $cook->id,
             'meal_type'         => $mealType,
             'served_at'         => now(),
@@ -113,7 +113,7 @@ class MealValidationService
     ): AnomalyLog {
         return AnomalyLog::create([
             'beneficiary_id'    => $beneficiary->id,
-            'project_id'        => $beneficiary->project_id,
+            'project_id'        => $cook->assigned_project_id,
             'served_by_user_id' => $cook->id,
             'meal_type'         => $mealType,
             'attempted_at'      => now(),

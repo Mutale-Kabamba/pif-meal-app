@@ -25,6 +25,7 @@ class User extends Authenticatable implements FilamentUser
     public const ROLE_SYSTEM_MANAGER = 'system_manager';
     public const ROLE_PROJECT_OFFICER = 'project_officer';
     public const ROLE_COOK = 'cook';
+    public const ROLE_COACH = 'coach';
 
     /**
      * Determine if the user can access the Filament admin panel in production.
@@ -53,6 +54,17 @@ class User extends Authenticatable implements FilamentUser
     public function isCook(): bool
     {
         return $this->role === self::ROLE_COOK;
+    }
+
+    public function isCoach(): bool
+    {
+        return $this->role === self::ROLE_COACH;
+    }
+
+    /** The football team(s) this user coaches. */
+    public function coachedTeams()
+    {
+        return $this->hasMany(Team::class, 'coach_id');
     }
 
     public function assignedProject()

@@ -4,22 +4,27 @@ namespace App\Imports;
 
 use App\Models\Beneficiary;
 use App\Models\Project;
+use App\Models\Team;
 use App\Services\IdentityGenerationService;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Row;
 
-class BeneficiaryImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
+class BeneficiaryImport implements OnEachRow, WithHeadingRow, WithValidation, SkipsOnFailure
 {
     use SkipsFailures;
 
     public int $importedCount = 0;
     public int $skippedCount  = 0;
 
-    /** @var array<string, int|null> project budget_code → id cache */
-    private array $projectCache = [];
+    /** @var array<string, Team|null> team name → Team model cache */
+    private array $teamCache = [];
+
+    /** @var array<string, int|null> education project name/code → project id cache */
+    private array $educationCache = [];
 
     private IdentityGenerationService $identityService;
 
@@ -28,60 +33,83 @@ class BeneficiaryImport implements ToModel, WithHeadingRow, WithValidation, Skip
         $this->identityService = app(IdentityGenerationService::class);
     }
 
-    public function model(array $row): ?Beneficiary
+    public function onRow(Row $row): void
     {
-        $budgetCode = trim($row['project_budget_code'] ?? '');
+        $rowData = $row->toArray();
 
-        // Resolve project id (cached to avoid N+1)
-        if (!array_key_exists($budgetCode, $this->projectCache)) {
-            $this->projectCache[$budgetCode] = Project::where('budget_code', $budgetCode)->value('id');
+        $teamName        = trim($rowData['team'] ?? '');
+        $educationProject = trim($rowData['education_project'] ?? '');
+
+        $projectIds = [];
+        $teamId     = null;
+
+        // ── Football team lookup ──────────────────────────────────────────
+        if (!empty($teamName)) {
+            if (!array_key_exists($teamName, $this->teamCache)) {
+                $this->teamCache[$teamName] = Team::where('name', $teamName)->first();
+            }
+            $team = $this->teamCache[$teamName];
+            if ($team) {
+                $teamId       = $team->id;
+                $projectIds[] = $team->project_id;
+            }
         }
 
-        $projectId = $this->projectCache[$budgetCode];
+        // ── Education project lookup (by name) ─────────────────────────────
+        if (!empty($educationProject)) {
+            if (!array_key_exists($educationProject, $this->educationCache)) {
+                $this->educationCache[$educationProject] = Project::where('programme_type', 'education')
+                    ->where('name', $educationProject)
+                    ->value('id');
+            }
+            if ($this->educationCache[$educationProject]) {
+                $projectIds[] = $this->educationCache[$educationProject];
+            }
+        }
 
-        if (!$projectId) {
+        if (empty($projectIds)) {
             $this->skippedCount++;
-            return null; // unknown project — skip silently
+            return; // No valid team or education project found — skip
         }
 
-        // Skip exact duplicates (same name in same project)
-        $alreadyExists = Beneficiary::where('project_id', $projectId)
-            ->where('name', trim($row['name']))
+        // Skip exact duplicates (same name already in the same primary project)
+        $exists = Beneficiary::where('name', trim($rowData['name']))
+            ->whereHas('projects', fn ($q) => $q->where('projects.id', $projectIds[0]))
             ->exists();
 
-        if ($alreadyExists) {
+        if ($exists) {
             $this->skippedCount++;
-            return null;
+            return;
         }
 
         $beneficiary = new Beneficiary([
-            'project_id'        => $projectId,
-            'name'              => trim($row['name']),
-            'is_active'         => filter_var($row['is_active'] ?? 1, FILTER_VALIDATE_BOOLEAN),
-            'literacy_enrolled' => filter_var($row['literacy_enrolled'] ?? 0, FILTER_VALIDATE_BOOLEAN),
+            'name'      => trim($rowData['name']),
+            'is_active' => filter_var($rowData['is_active'] ?? 1, FILTER_VALIDATE_BOOLEAN),
+            'team_id'   => $teamId,
         ]);
 
-        // Auto-generate shortcode and QR token
         $this->identityService->assignUniqueIdentity($beneficiary);
+        $beneficiary->save();
+
+        // Attach to all resolved projects via pivot (deduped)
+        $beneficiary->projects()->sync(array_unique($projectIds));
 
         $this->importedCount++;
-
-        return $beneficiary;
     }
 
     public function rules(): array
     {
         return [
-            'name'               => 'required|string|max:255',
-            'project_budget_code' => 'required|string',
+            'name' => 'required|string|max:255',
         ];
     }
 
     public function customValidationMessages(): array
     {
         return [
-            'name.required'                => 'Beneficiary name is required.',
-            'project_budget_code.required' => 'project_budget_code is required (e.g. PROJ-001).',
+            'name.required' => 'Beneficiary name is required.',
         ];
     }
 }
+
+

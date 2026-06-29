@@ -30,10 +30,11 @@ class ProjectResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('budget_code')
+                Forms\Components\Select::make('programme_type')
+                    ->label('Programme Type')
+                    ->options(\App\Models\Project::programmeTypes())
                     ->required()
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(255),
+                    ->default(\App\Models\Project::PROGRAMME_FOOTBALL),
                 Forms\Components\TextInput::make('daily_meal_limit_per_beneficiary')
                     ->required()
                     ->numeric()
@@ -51,8 +52,13 @@ class ProjectResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('budget_code')
-                    ->searchable(),
+                Tables\Columns\BadgeColumn::make('programme_type')
+                    ->label('Programme')
+                    ->formatStateUsing(fn ($state) => \App\Models\Project::programmeTypes()[$state] ?? $state)
+                    ->colors([
+                        'success' => 'football',
+                        'info'    => 'education',
+                    ]),
                 Tables\Columns\TextColumn::make('daily_meal_limit_per_beneficiary')
                     ->numeric()
                     ->sortable(),
@@ -67,6 +73,9 @@ class ProjectResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('programme_type')
+                    ->label('Programme Type')
+                    ->options(\App\Models\Project::programmeTypes()),
                 Tables\Filters\Filter::make('is_active')
                     ->query(fn (Builder $query): Builder => $query->where('is_active', true))
                     ->label('Active Only'),

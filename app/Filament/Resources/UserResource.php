@@ -45,6 +45,7 @@ class UserResource extends Resource
                             User::ROLE_HEAD_OF_PROGRAMMES => 'Head of Programmes',
                             User::ROLE_SYSTEM_MANAGER     => 'System Manager',
                             User::ROLE_PROJECT_OFFICER    => 'Project Officer',
+                            User::ROLE_COACH              => 'Coach',
                             User::ROLE_COOK               => 'Cook',
                         ];
                         // System managers cannot create HoP or project officer accounts
@@ -63,6 +64,7 @@ class UserResource extends Resource
                     ->visible(fn (callable $get) => in_array($get('role'), [
                         User::ROLE_PROJECT_OFFICER,
                         User::ROLE_COOK,
+                        User::ROLE_COACH,
                     ])),
                 Forms\Components\TextInput::make('password')
                     ->password()
@@ -84,6 +86,7 @@ class UserResource extends Resource
                         User::ROLE_HEAD_OF_PROGRAMMES => 'Head of Programmes',
                         User::ROLE_SYSTEM_MANAGER     => 'System Manager',
                         User::ROLE_PROJECT_OFFICER    => 'Project Officer',
+                        User::ROLE_COACH              => 'Coach',
                         User::ROLE_COOK               => 'Cook',
                         default                       => $state,
                     })
@@ -91,7 +94,8 @@ class UserResource extends Resource
                         User::ROLE_HEAD_OF_PROGRAMMES => 'danger',
                         User::ROLE_SYSTEM_MANAGER     => 'warning',
                         User::ROLE_PROJECT_OFFICER    => 'success',
-                        default                       => 'info',
+                        User::ROLE_COACH              => 'info',
+                        default                       => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('assignedProject.name')
                     ->label('Assigned Project')

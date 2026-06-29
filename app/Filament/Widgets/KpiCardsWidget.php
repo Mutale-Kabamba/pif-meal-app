@@ -36,7 +36,7 @@ class KpiCardsWidget extends BaseWidget
 
             if ($isOfficer && $projectId) {
                 $mealsBase->where('project_id', $projectId);
-                $benefBase->where('project_id', $projectId);
+                $benefBase->inProject($projectId);
             }
 
             return [
@@ -90,7 +90,7 @@ class KpiCardsWidget extends BaseWidget
     {
         $query = Beneficiary::where('is_active', true);
         if ($projectId) {
-            $query->where('project_id', $projectId);
+            $query->inProject($projectId);
         }
         $activeBeneficiaries = $query->count();
 

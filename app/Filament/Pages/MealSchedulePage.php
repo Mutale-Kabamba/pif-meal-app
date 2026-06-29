@@ -36,10 +36,6 @@ class MealSchedulePage extends Page
                     TextInput::make('name')
                         ->required()
                         ->maxLength(255),
-                    TextInput::make('budget_code')
-                        ->label('Budget Code')
-                        ->required()
-                        ->maxLength(255),
                     TextInput::make('daily_meal_limit_per_beneficiary')
                         ->label('Daily Meal Limit')
                         ->numeric()

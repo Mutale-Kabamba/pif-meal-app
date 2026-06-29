@@ -25,9 +25,9 @@ class ListProjects extends ListRecords
                 ->action(function () {
                     return response()->streamDownload(function () {
                         $out = fopen('php://output', 'w');
-                        fputcsv($out, ['name', 'budget_code', 'daily_meal_limit', 'is_active', 'description']);
-                        fputcsv($out, ['Senior Boys Team', 'FB-SB-2024', '1', '1', 'Football — Senior Boys']);
-                        fputcsv($out, ['Senior Girls Team', 'FB-SG-2024', '1', '1', 'Football — Senior Girls']);
+                        fputcsv($out, ['name', 'daily_meal_limit', 'is_active', 'description']);
+                        fputcsv($out, ['Senior Boys Team', '1', '1', 'Football — Senior Boys']);
+                        fputcsv($out, ['Senior Girls Team', '1', '1', 'Football — Senior Girls']);
                         fclose($out);
                     }, 'projects-import-template.csv', ['Content-Type' => 'text/csv']);
                 }),

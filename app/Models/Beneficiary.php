@@ -9,16 +9,21 @@ class Beneficiary extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['project_id', 'name', 'shortcode', 'qr_token', 'is_active', 'literacy_enrolled'];
+    protected $fillable = ['name', 'shortcode', 'qr_token', 'is_active', 'team_id'];
 
     protected $casts = [
-        'is_active'          => 'boolean',
-        'literacy_enrolled'  => 'boolean',
+        'is_active' => 'boolean',
     ];
 
-    public function project()
+    /** Many-to-many: football project, education project, or both. */
+    public function projects()
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsToMany(Project::class, 'beneficiary_project')->withTimestamps();
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function mealLogs()
@@ -34,5 +39,16 @@ class Beneficiary extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /** Filter beneficiaries enrolled in a specific project (via pivot). */
+    public function scopeInProject($query, int $projectId)
+    {
+        return $query->whereHas('projects', fn ($q) => $q->where('projects.id', $projectId));
+    }
+
+    public function isDualEnrolled(): bool
+    {
+        return $this->projects()->count() >= 2;
     }
 }
