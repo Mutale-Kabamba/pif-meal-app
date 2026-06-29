@@ -33,7 +33,8 @@ class TurnoutTrendChart extends ChartWidget
             $teamBenefIds = Beneficiary::where('team_id', $teamId)->pluck('id');
             $query->whereIn('beneficiary_id', $teamBenefIds);
         } elseif ($isOfficer && $projectId) {
-            $query->where('project_id', $projectId);
+            $projectBenefIds = Beneficiary::inProject($projectId)->pluck('id');
+            $query->whereIn('beneficiary_id', $projectBenefIds);
         }
 
         $logCounts = $query->groupBy('date_key')->pluck('total', 'date_key');
