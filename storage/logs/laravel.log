@@ -3091,3 +3091,11 @@ Did you mean one of these?
 #49 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('C://Users//mukuk//...')
 #50 {main}
 "} 
+[2026-06-29 19:53:50] local.ERROR: Cannot declare class App\Filament\Pages\ProjectRegistersPage, because the name is already in use {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot declare class App\\Filament\\Pages\\ProjectRegistersPage, because the name is already in use at C:/Users/mukuk/Documents/GitHub/pif-meal-app/app/Filament/Pages/ProjectRegistersPage.php:171)
+[stacktrace]
+#0 {main}
+"} 
+[2026-06-29 19:59:19] local.ERROR: Cannot declare class App\Filament\Pages\ProjectRegistersPage, because the name is already in use {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot declare class App\\Filament\\Pages\\ProjectRegistersPage, because the name is already in use at C:/Users/mukuk/Documents/GitHub/pif-meal-app/app/Filament/Pages/ProjectRegistersPage.php:171)
+[stacktrace]
+#0 {main}
+"} 
