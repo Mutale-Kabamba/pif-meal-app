@@ -30,9 +30,9 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Assign sample cooks to first two football teams (looked up by budget code)
-        $seniorBoys  = \App\Models\Project::where('budget_code', 'FB-SB-2024')->value('id');
-        $seniorGirls = \App\Models\Project::where('budget_code', 'FB-SG-2024')->value('id');
+        // Assign sample cooks to first two football teams (looked up by name)
+        $seniorBoys  = \App\Models\Project::where('name', 'Senior Boys Team')->value('id');
+        $seniorGirls = \App\Models\Project::where('name', 'Senior Girls Team')->value('id');
 
         User::updateOrCreate(
             ['email' => 'cook.a@nms.local'],

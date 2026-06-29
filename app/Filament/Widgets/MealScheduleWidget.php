@@ -37,9 +37,6 @@ class MealScheduleWidget extends BaseWidget
                     ->label('Project Stream Name')
                     ->weight('bold')
                     ->wrap(),
-                Tables\Columns\TextColumn::make('budget_code')
-                    ->label('Budget Code')
-                    ->fontFamily('mono'),
                 Tables\Columns\TextColumn::make('daily_meal_limit_per_beneficiary')
                     ->label(' Rations/Day Limit')
                     ->alignCenter(),
@@ -55,7 +52,6 @@ class MealScheduleWidget extends BaseWidget
                 Tables\Actions\EditAction::make()
                     ->form([
                         TextInput::make('name')->required(),
-                        TextInput::make('budget_code')->required(),
                         TextInput::make('daily_meal_limit_per_beneficiary')->numeric()->required(),
                         Textarea::make('description')->label('Weekly Feeding Schedule Menu Rules')->rows(4),
                         Toggle::make('is_active'),

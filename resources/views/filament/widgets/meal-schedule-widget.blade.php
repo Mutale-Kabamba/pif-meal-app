@@ -9,7 +9,7 @@
                 <div class="py-3 flex items-center justify-between gap-4">
                     <div>
                         <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $project->name }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $project->budget_code }} &bull; Status: {{ $project->is_active ? 'Active' : 'Disabled' }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Status: {{ $project->is_active ? 'Active' : 'Disabled' }}</p>
                     </div>
                     <div class="text-right shrink-0">
                         <span class="px-2.5 py-1 text-xs font-mono font-bold bg-gray-100 text-gray-800 rounded-lg dark:bg-gray-800 dark:text-gray-200">

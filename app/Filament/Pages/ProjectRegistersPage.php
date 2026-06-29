@@ -106,7 +106,7 @@ class ProjectRegistersPage extends Page
 
         if (!empty($this->selectedProjectId)) {
             // Highly optimized queries select only required memory columns
-            $beneficiaries = Beneficiary::where('project_id', $this->selectedProjectId)
+            $beneficiaries = Beneficiary::inProject((int) $this->selectedProjectId)
                 ->where('is_active', true)
                 ->select(['id', 'name'])
                 ->orderBy('name', 'asc')

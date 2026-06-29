@@ -26,9 +26,6 @@ class ProjectRegistersWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('name')
                     ->label('Project Name')
                     ->weight('bold'),
-                Tables\Columns\TextColumn::make('budget_code')
-                    ->label('Budget Code')
-                    ->fontFamily('mono'),
                 Tables\Columns\TextColumn::make('beneficiaries_count')
                     ->label('Active Beneficiaries')
                     ->badge()

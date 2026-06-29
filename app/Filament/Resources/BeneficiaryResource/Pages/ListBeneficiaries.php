@@ -25,9 +25,10 @@ class ListBeneficiaries extends ListRecords
                 ->action(function () {
                     return response()->streamDownload(function () {
                         $out = fopen('php://output', 'w');
-                        fputcsv($out, ['name', 'project_budget_code', 'is_active', 'literacy_enrolled']);
-                        fputcsv($out, ['John Banda', 'FB-SB-2024', '1', '0']);
-                        fputcsv($out, ['Mary Phiri', 'FB-SG-2024', '1', '1']);
+                        fputcsv($out, ['name', 'team', 'education_project', 'is_active']);
+                        fputcsv($out, ['John Banda',  'U12 Lions', '',                 '1']);
+                        fputcsv($out, ['Mary Phiri',  '',          'Education Project', '1']);
+                        fputcsv($out, ['James Mwale', 'U12 Lions', 'Education Project', '1']);
                         fclose($out);
                     }, 'beneficiaries-import-template.csv', ['Content-Type' => 'text/csv']);
                 }),
@@ -61,7 +62,7 @@ class ListBeneficiaries extends ListRecords
                     $failures  = $import->failures();
                     $failCount = count($failures);
                     $body      = $import->skippedCount > 0
-                        ? $import->skippedCount . ' row(s) skipped (duplicate name or unknown project budget code).'
+                        ? $import->skippedCount . ' row(s) skipped (duplicate name or unknown team / education project).'
                         : null;
 
                     if ($failCount > 0) {

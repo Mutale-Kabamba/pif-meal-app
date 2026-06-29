@@ -21,14 +21,14 @@ class BeneficiaryController extends Controller
         }
 
         $beneficiaries = Beneficiary::query()
-            ->with('project:id,name')
+            ->with(['projects:id,name,programme_type', 'team:id,name'])
             ->active()
             ->where(function ($q) use ($query) {
                 $q->where('shortcode', 'like', $query . '%')
                   ->orWhere('name', 'like', '%' . $query . '%');
             })
             ->limit(10)
-            ->get(['id', 'name', 'shortcode', 'project_id']);
+            ->get(['id', 'name', 'shortcode', 'team_id']);
 
         return response()->json($beneficiaries);
     }
