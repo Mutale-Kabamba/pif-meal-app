@@ -15,29 +15,28 @@ class KitchenEfficiencyChart extends ChartWidget
     protected function getData(): array
     {
         $todayStart = today()->startOfDay();
-        $todayEnd = today()->endOfDay();
+        $todayEnd   = today()->endOfDay();
 
-        // Single grouped query instead of one query per cook
         $mealCounts = MealLog::selectRaw('served_by_user_id, COUNT(*) as total')
             ->whereBetween('served_at', [$todayStart, $todayEnd])
             ->groupBy('served_by_user_id')
             ->pluck('total', 'served_by_user_id');
 
-        $cooks = User::where('role', 'cook')->get();
+        $cooks  = User::where('role', User::ROLE_COOK)->get();
         $labels = [];
-        $data = [];
+        $data   = [];
 
         foreach ($cooks as $cook) {
             $labels[] = $cook->name;
-            $data[] = $mealCounts->get($cook->id, 0);
+            $data[]   = $mealCounts->get($cook->id, 0);
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Meals Today',
-                    'data' => $data,
-                    'backgroundColor' => '#3b82f6', // Clean Blue Bar fill
+                    'label'           => 'Meals Today',
+                    'data'            => $data,
+                    'backgroundColor' => '#3b82f6',
                 ],
             ],
             'labels' => $labels,
@@ -51,6 +50,10 @@ class KitchenEfficiencyChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->role === 'head_of_programmes';
+        $role = auth()->user()?->role;
+        return in_array($role, [
+            User::ROLE_HEAD_OF_PROGRAMMES,
+            User::ROLE_SYSTEM_MANAGER,
+        ]);
     }
 }

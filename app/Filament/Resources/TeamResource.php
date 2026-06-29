@@ -26,8 +26,37 @@ class TeamResource extends Resource
         return in_array($role, [
             User::ROLE_HEAD_OF_PROGRAMMES,
             User::ROLE_SYSTEM_MANAGER,
-            User::ROLE_PROJECT_OFFICER,
+            User::ROLE_COACH,
         ]);
+    }
+
+    public static function canCreate(): bool
+    {
+        // Only admins can create teams; coaches manage existing ones
+        $role = auth()->user()?->role;
+        return in_array($role, [
+            User::ROLE_HEAD_OF_PROGRAMMES,
+            User::ROLE_SYSTEM_MANAGER,
+        ]);
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        $user = auth()->user();
+        if ($user?->isCoach()) {
+            return (int) $record->coach_id === (int) $user->id;
+        }
+        return true;
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return !auth()->user()?->isCoach();
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return !auth()->user()?->isCoach();
     }
 
     public static function getEloquentQuery(): Builder
@@ -35,9 +64,9 @@ class TeamResource extends Resource
         $user  = auth()->user();
         $query = parent::getEloquentQuery();
 
-        // Project officers only see teams in their own project
-        if ($user?->isProjectOfficer() && $user->assigned_project_id) {
-            $query->where('project_id', $user->assigned_project_id);
+        // Coaches only see the teams they coach
+        if ($user?->isCoach()) {
+            $query->where('coach_id', $user->id);
         }
 
         return $query;
@@ -63,23 +92,20 @@ class TeamResource extends Resource
                     ->helperText('Teams can only belong to Football projects.')
                     ->required()
                     ->searchable()
-                    ->hidden(fn () => auth()->user()?->isProjectOfficer()),
-
-                Forms\Components\Placeholder::make('project_locked')
-                    ->label('Football Project')
-                    ->content(fn () => auth()->user()?->assignedProject?->name ?? '—')
-                    ->visible(fn () => auth()->user()?->isProjectOfficer()),
+                    ->disabled(fn () => auth()->user()?->isCoach())
+                    ->dehydrated(),
 
                 Forms\Components\Select::make('coach_id')
                     ->label('Coach')
                     ->options(
                         fn () => User::where('role', User::ROLE_COACH)
-                            ->orWhere('role', User::ROLE_PROJECT_OFFICER)
                             ->pluck('name', 'id')
                     )
                     ->nullable()
                     ->searchable()
-                    ->placeholder('Unassigned'),
+                    ->placeholder('Unassigned')
+                    ->disabled(fn () => auth()->user()?->isCoach())
+                    ->dehydrated(),
 
                 Forms\Components\Toggle::make('is_active')
                     ->label('Active')
@@ -127,19 +153,23 @@ class TeamResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('project')
                     ->relationship('project', 'name')
-                    ->label('Filter By Project'),
+                    ->label('Filter By Project')
+                    ->hidden(fn () => auth()->user()?->isCoach()),
 
                 Tables\Filters\Filter::make('is_active')
                     ->query(fn (Builder $query): Builder => $query->where('is_active', true))
                     ->label('Active Teams Only'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (Team $record) => static::canEdit($record)),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (Team $record) => static::canDelete($record)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->visible(fn () => static::canDeleteAny()),
                 ]),
             ]);
     }
