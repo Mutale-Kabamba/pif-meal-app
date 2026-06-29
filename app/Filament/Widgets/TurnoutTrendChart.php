@@ -2,30 +2,37 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Beneficiary;
 use App\Models\MealLog;
+use App\Models\Team;
 use App\Models\User;
-use Filament\Widgets\ChartWidget;
 use Carbon\Carbon;
+use Filament\Widgets\ChartWidget;
 
 class TurnoutTrendChart extends ChartWidget
 {
     protected static ?string $heading = 'Daily Feeding Trend (Last 30 Days)';
     protected static ?int $sort = 1;
-    protected int|string|array $columnSpan = 'full'; // Takes full row underneath metrics
+    protected int|string|array $columnSpan = 'full';
 
     protected function getData(): array
     {
         $user      = auth()->user();
-        $projectId = $user?->isProjectOfficer() ? $user->assigned_project_id : null;
+        $isOfficer = $user?->isProjectOfficer();
+        $isCoach   = $user?->isCoach();
+        $projectId = $isOfficer ? $user->assigned_project_id : null;
+        $teamId    = $isCoach ? Team::where('coach_id', $user->id)->value('id') : null;
 
         $startDate = Carbon::now()->subDays(29)->startOfDay();
         $endDate   = Carbon::now()->endOfDay();
 
-        // Single grouped query instead of 30 individual whereDate() queries
         $query = MealLog::selectRaw("DATE(served_at) as date_key, COUNT(*) as total")
             ->whereBetween('served_at', [$startDate, $endDate]);
 
-        if ($projectId) {
+        if ($isCoach && $teamId) {
+            $teamBenefIds = Beneficiary::where('team_id', $teamId)->pluck('id');
+            $query->whereIn('beneficiary_id', $teamBenefIds);
+        } elseif ($isOfficer && $projectId) {
             $query->where('project_id', $projectId);
         }
 
@@ -43,12 +50,12 @@ class TurnoutTrendChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Meals Served',
-                    'data' => $counts,
-                    'borderColor' => '#10b981',
+                    'label'           => 'Meals Served',
+                    'data'            => $counts,
+                    'borderColor'     => '#10b981',
                     'backgroundColor' => 'rgba(16, 185, 129, 0.05)',
-                    'fill' => true,
-                    'tension' => 0.2,
+                    'fill'            => true,
+                    'tension'         => 0.2,
                 ],
             ],
             'labels' => $dates->toArray(),
@@ -64,9 +71,10 @@ class TurnoutTrendChart extends ChartWidget
     {
         $role = auth()->user()?->role;
         return in_array($role, [
-            \App\Models\User::ROLE_HEAD_OF_PROGRAMMES,
-            \App\Models\User::ROLE_SYSTEM_MANAGER,
-            \App\Models\User::ROLE_PROJECT_OFFICER,
+            User::ROLE_HEAD_OF_PROGRAMMES,
+            User::ROLE_SYSTEM_MANAGER,
+            User::ROLE_PROJECT_OFFICER,
+            User::ROLE_COACH,
         ]);
     }
 }

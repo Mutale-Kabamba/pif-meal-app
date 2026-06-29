@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\Project;
+use App\Models\Team;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -64,8 +65,24 @@ class UserResource extends Resource
                     ->visible(fn (callable $get) => in_array($get('role'), [
                         User::ROLE_PROJECT_OFFICER,
                         User::ROLE_COOK,
-                        User::ROLE_COACH,
                     ])),
+
+                Forms\Components\Select::make('coached_team_id')
+                    ->label('Coached Team')
+                    ->helperText('This coach will be assigned to the selected football team.')
+                    ->options(
+                        fn () => Team::with('project')
+                            ->whereHas('project', fn ($q) => $q->where('programme_type', Project::PROGRAMME_FOOTBALL))
+                            ->get()
+                            ->mapWithKeys(fn (Team $team) => [
+                                $team->id => $team->name . ' — ' . ($team->project->name ?? '?'),
+                            ])
+                    )
+                    ->searchable()
+                    ->nullable()
+                    ->placeholder('No team assigned')
+                    ->dehydrated(false)
+                    ->visible(fn (callable $get) => $get('role') === User::ROLE_COACH),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->dehydrateStateUsing(fn ($state) => Hash::make($state))

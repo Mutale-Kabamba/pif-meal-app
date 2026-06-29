@@ -4,6 +4,7 @@ namespace App\Filament\Resources\TeamResource\Pages;
 
 use App\Filament\Resources\TeamResource;
 use App\Imports\TeamImport;
+use App\Models\User;
 use Filament\Actions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
@@ -17,6 +18,15 @@ class ListTeams extends ListRecords
 
     protected function getHeaderActions(): array
     {
+        $isAdmin = in_array(auth()->user()?->role, [
+            User::ROLE_HEAD_OF_PROGRAMMES,
+            User::ROLE_SYSTEM_MANAGER,
+        ]);
+
+        if (!$isAdmin) {
+            return [];
+        }
+
         return [
             Actions\Action::make('downloadTeamTemplate')
                 ->label('Download Template')
@@ -88,4 +98,5 @@ class ListTeams extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
 }
