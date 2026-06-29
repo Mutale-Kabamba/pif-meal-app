@@ -4,7 +4,7 @@
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div>
                     <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Project Stream Boundary</label>
-                    <select wire:model.live="selectedProjectId" @disabled($isProjectOfficer) class="w-full text-xs rounded-lg border-gray-300 py-1.5 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed">
+                    <select wire:model.live="selectedProjectId" @disabled($lockProject) class="w-full text-xs rounded-lg border-gray-300 py-1.5 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed">
                         <option value="">-- Select Project --</option>
                         @foreach($projects as $proj)
                             <option value="{{ $proj->id }}">{{ $proj->name }}</option>
