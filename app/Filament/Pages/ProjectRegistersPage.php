@@ -2,12 +2,14 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\AttendanceLog;
 use App\Models\Beneficiary;
 use App\Models\MealLog;
 use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 
 class ProjectRegistersPage extends Page
@@ -16,9 +18,11 @@ class ProjectRegistersPage extends Page
     protected static ?string $navigationGroup = 'Management';
     protected static ?string $title = 'Monthly Attendance Registers';
     protected static ?string $slug = 'project-registers';
+    protected static ?int $navigationSort = 3;
     protected static string $view = 'filament.pages.project-registers-page';
 
-    public string  $scope           = 'all'; // all | education | football
+    public string  $registerType     = 'attendance'; // attendance | meals
+    public string  $scope            = 'all'; // all | education | football
     public ?string $selectedProjectId = '';
     public ?string $selectedTeamId    = '';
     public int     $filterMonth;
@@ -39,13 +43,17 @@ class ProjectRegistersPage extends Page
     public function getHeading(): string
     {
         $monthName = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1)->format('F Y');
-        return "Monthly Attendance Registers — {$monthName}";
+        $label = $this->registerType === 'attendance' ? 'Monthly Attendance Registers' : 'Monthly Meal Registers';
+        return "{$label} — {$monthName}";
     }
 
     public function getSubheading(): ?string
     {
         $monthName = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1)->format('F Y');
-        return "Daily attendance and meal distribution records for {$monthName}";
+        if ($this->registerType === 'attendance') {
+            return "Football training & literacy class session attendance marked by coaches and project officers for {$monthName}";
+        }
+        return "Meal distribution logs served by kitchen cooks for {$monthName}";
     }
 
     public function mount(): void
@@ -104,6 +112,54 @@ class ProjectRegistersPage extends Page
 
     public function updatedFilterMonth(): void { $this->buildSmartCalendarStructure(); }
     public function updatedFilterYear(): void  { $this->buildSmartCalendarStructure(); }
+
+    public function toggleAttendance(int $beneficiaryId, int $day): void
+    {
+        // Only allow toggling when on attendance register mode
+        if ($this->registerType !== 'attendance') {
+            return;
+        }
+
+        $user = auth()->user();
+        $date = Carbon::createFromDate($this->filterYear, $this->filterMonth, $day)->toDateString();
+        $beneficiary = Beneficiary::find($beneficiaryId);
+        if (!$beneficiary) return;
+
+        $existing = AttendanceLog::where('beneficiary_id', $beneficiaryId)
+            ->whereDate('attended_at', $date)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            Notification::make()
+                ->title("Marked absent: {$beneficiary->name} on " . Carbon::parse($date)->format('M j'))
+                ->info()
+                ->duration(2000)
+                ->send();
+        } else {
+            $projectId = $this->selectedProjectId ?: ($beneficiary->projects()->value('projects.id') ?? 1);
+            $project = Project::find($projectId);
+            $activity = $project?->programme_type === Project::PROGRAMME_FOOTBALL 
+                ? AttendanceLog::ACTIVITY_TRAINING 
+                : AttendanceLog::ACTIVITY_CLASS_SESSION;
+
+            AttendanceLog::create([
+                'beneficiary_id'      => $beneficiaryId,
+                'project_id'          => $projectId,
+                'team_id'             => $beneficiary->team_id,
+                'recorded_by_user_id' => $user->id,
+                'activity_type'       => $activity,
+                'attended_at'         => $date,
+                'status'              => 'present',
+            ]);
+
+            Notification::make()
+                ->title("Marked present: {$beneficiary->name} on " . Carbon::parse($date)->format('M j'))
+                ->success()
+                ->duration(2000)
+                ->send();
+        }
+    }
 
     protected function buildSmartCalendarStructure(): void
     {
@@ -181,12 +237,28 @@ class ProjectRegistersPage extends Page
         } elseif ($this->scope === Project::PROGRAMME_FOOTBALL) {
             $benefQuery->whereHas('projects', fn ($q) => $q->where('programme_type', Project::PROGRAMME_FOOTBALL));
         }
-        // scope='all' + no project ? all active beneficiaries
 
         $beneficiaries  = $benefQuery->orderBy('name')->get();
         $beneficiaryIds = $beneficiaries->pluck('id');
 
-        // -- Meal matrix -------------------------------------------------------
+        // -- Attendance Matrix (Marked by Coaches / Project Officers) ----------
+        $attendanceMatrix = [];
+        if ($beneficiaryIds->isNotEmpty()) {
+            $attLogs = AttendanceLog::whereIn('beneficiary_id', $beneficiaryIds)
+                ->whereMonth('attended_at', $this->filterMonth)
+                ->whereYear('attended_at', $this->filterYear)
+                ->where('status', 'present')
+                ->select(['beneficiary_id', 'attended_at'])
+                ->toBase()
+                ->get();
+
+            foreach ($attLogs as $log) {
+                $day = Carbon::parse($log->attended_at)->day;
+                $attendanceMatrix[$log->beneficiary_id][$day] = true;
+            }
+        }
+
+        // -- Meal matrix (Marked by Cooks) -------------------------------------
         $mealMatrix = [];
         if ($beneficiaryIds->isNotEmpty()) {
             $logs = MealLog::whereIn('beneficiary_id', $beneficiaryIds)
@@ -202,20 +274,26 @@ class ProjectRegistersPage extends Page
             }
         }
 
-        // -- Register label ----------------------------------------------------
+        // -- Activity & Register label -----------------------------------------
         if ($isCoach) {
             $coachTeamName = Team::where('coach_id', $user->id)->value('name') ?? '-';
-            $registerLabel = 'Team: ' . $coachTeamName;
+            $activityLabel = 'Football Training';
+            $registerLabel = 'Football Team: ' . $coachTeamName;
         } elseif ($this->selectedTeamId && $isFootballProject) {
             $teamName      = $teams->firstWhere('id', $this->selectedTeamId)?->name ?? '-';
-            $registerLabel = 'Team: ' . $teamName;
+            $activityLabel = 'Football Training';
+            $registerLabel = 'Football Team: ' . $teamName;
         } elseif ($selectedProject) {
+            $activityLabel = $isFootballProject ? 'Football Training' : 'Literacy Class / Session';
             $registerLabel = 'Project: ' . $selectedProject->name;
         } elseif ($this->scope === Project::PROGRAMME_EDUCATION) {
+            $activityLabel = 'Literacy / Education Class Sessions';
             $registerLabel = 'All Education Beneficiaries';
         } elseif ($this->scope === Project::PROGRAMME_FOOTBALL) {
+            $activityLabel = 'Football Training Sessions';
             $registerLabel = 'All Football Beneficiaries';
         } else {
+            $activityLabel = 'Training & Class Sessions';
             $registerLabel = 'All Beneficiaries';
         }
 
@@ -225,7 +303,10 @@ class ProjectRegistersPage extends Page
             'projects'           => $projects,
             'teams'              => $teams,
             'beneficiaries'      => $beneficiaries,
+            'attendanceMatrix'   => $attendanceMatrix,
             'mealMatrix'         => $mealMatrix,
+            'activeMatrix'       => $this->registerType === 'attendance' ? $attendanceMatrix : $mealMatrix,
+            'activityLabel'      => $activityLabel,
             'registerLabel'      => $registerLabel,
             'selectedMonthName'  => $monthCarbon->format('F Y'),
             'selectedMonthShort' => $monthCarbon->format('M Y'),

@@ -30,6 +30,11 @@ class Team extends Model
         return $this->hasMany(Beneficiary::class);
     }
 
+    public function attendanceLogs()
+    {
+        return $this->hasMany(AttendanceLog::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

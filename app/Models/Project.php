@@ -42,6 +42,11 @@ class Project extends Model
         return $this->hasMany(MealLog::class);
     }
 
+    public function attendanceLogs()
+    {
+        return $this->hasMany(AttendanceLog::class);
+    }
+
     public function cooks()
     {
         return $this->hasMany(User::class, 'assigned_project_id');

@@ -76,4 +76,9 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(MealLog::class, 'served_by_user_id');
     }
+
+    public function recordedAttendanceLogs()
+    {
+        return $this->hasMany(AttendanceLog::class, 'recorded_by_user_id');
+    }
 }

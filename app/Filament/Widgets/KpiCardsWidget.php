@@ -42,23 +42,27 @@ class KpiCardsWidget extends BaseWidget
 
             $mealsBase = MealLog::query();
             $benefBase = Beneficiary::query();
+            $attendanceBase = \App\Models\AttendanceLog::query();
 
             if ($isCoach && $teamId) {
                 // Scope to the coach's own team
                 $teamBenefIds = Beneficiary::where('team_id', $teamId)->pluck('id');
                 $benefBase->whereIn('id', $teamBenefIds);
                 $mealsBase->whereIn('beneficiary_id', $teamBenefIds);
+                $attendanceBase->whereIn('beneficiary_id', $teamBenefIds);
             } elseif ($isOfficer && $projectId) {
                 // Scope by enrolled beneficiaries so dual-enrolled meals are counted
                 $projectBenefIds = Beneficiary::inProject($projectId)->pluck('id');
                 $benefBase->whereIn('id', $projectBenefIds);
                 $mealsBase->whereIn('beneficiary_id', $projectBenefIds);
+                $attendanceBase->whereIn('beneficiary_id', $projectBenefIds);
             }
 
             return [
                 'activeProjects'     => ($isOfficer || $isCoach) ? null : Project::where('is_active', true)->count(),
                 'totalBeneficiaries' => (clone $benefBase)->count(),
                 'mealsToday'         => (clone $mealsBase)->whereBetween('served_at', [$todayStart, $todayEnd])->count(),
+                'attendanceToday'    => (clone $attendanceBase)->whereDate('attended_at', today())->where('status', 'present')->count(),
                 'mealsThisWeek'      => (clone $mealsBase)->whereBetween('served_at', [$weekStart, $weekEnd])->count(),
                 'mealsThisMonth'     => (clone $mealsBase)->whereBetween('served_at', [$monthStart, $monthEnd])->count(),
                 'turnoutRate'        => $this->calculateTurnoutRate($isOfficer ? $projectId : null, $isCoach ? $teamId : null),
@@ -90,8 +94,25 @@ class KpiCardsWidget extends BaseWidget
             ->descriptionIcon('heroicon-m-users')
             ->color('info');
 
+        $activityLabel = match (true) {
+            $isCoach   => 'Training Attendance Today',
+            $isOfficer => 'Class Attendance Today',
+            default    => 'Session Attendance Today',
+        };
+
+        $activityDesc = match (true) {
+            $isCoach   => 'Football training sessions',
+            $isOfficer => 'Literacy & educational classes',
+            default    => 'Training & literacy sessions',
+        };
+
+        $stats[] = Stat::make($activityLabel, $statsData['attendanceToday'])
+            ->description($activityDesc)
+            ->descriptionIcon('heroicon-m-clipboard-document-check')
+            ->color('success');
+
         $stats[] = Stat::make('Meals Today', $statsData['mealsToday'])
-            ->description('Distributed today')
+            ->description('Cooks feeding station')
             ->descriptionIcon('heroicon-m-cake')
             ->color('warning');
 

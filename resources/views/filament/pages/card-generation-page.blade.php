@@ -82,89 +82,119 @@
     @endif
 
     @if($showPostGenerationModal)
-        <div class="fixed inset-0 bg-gray-950/60 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300">
-            <div class="bg-white dark:bg-gray-900 max-w-md w-full rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden relative">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             style="background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);"
+             wire:click.self="$set('showPostGenerationModal', false)">
+            
+            <div class="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800"
+                 style="max-width: 480px; width: 100%; border-radius: 28px; padding: 32px 32px 24px 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.02); margin: auto;">
                 
-                {{-- Close button (top-right) --}}
+                {{-- Top Close Button --}}
                 <button wire:click="$set('showPostGenerationModal', false)" 
                         type="button"
-                        class="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-300 transition-colors"
+                        class="absolute transition-colors hover:opacity-75"
+                        style="top: 20px; right: 20px; background: transparent; border: none; cursor: pointer; color: #94a3b8; padding: 4px;"
                         title="Close">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
 
-                <div class="p-6 text-center">
-                    {{-- Soft Badge Icon --}}
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/80 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                        <svg class="w-7 h-7 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                {{-- Header Row: Horizontal Icon + Title & Subtitle --}}
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    
+                    {{-- Checkmark Icon with Celebration Burst Rays --}}
+                    <div style="position: relative; flex-shrink: 0; width: 48px; height: 48px;">
+                        {{-- Subtle burst rays --}}
+                        <svg viewBox="0 0 48 48" style="position: absolute; top: -6px; left: -6px; width: 60px; height: 60px; pointer-events: none; opacity: 0.45;" fill="none">
+                            <line x1="24" y1="2" x2="24" y2="7" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" />
+                            <line x1="8" y1="9" x2="12" y2="13" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" />
+                            <line x1="40" y1="9" x2="36" y2="13" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" />
                         </svg>
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background-color: #d1fae5; display: flex; align-items: center; justify-content: center;">
+                            <svg style="width: 24px; height: 24px; stroke: #059669;" fill="none" viewBox="0 0 24 24" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
                     </div>
 
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
-                        Card Batch Ready
-                    </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">
-                        Beneficiary cards have been compiled and safely archived in your cards folder.
-                    </p>
+                    {{-- Title & Subtitle --}}
+                    <div style="padding-right: 16px;">
+                        <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.25; letter-spacing: -0.02em;">
+                            Card Batch Ready
+                        </h3>
+                        <p style="font-size: 13px; color: #64748b; margin: 6px 0 0 0; line-height: 1.45;">
+                            Beneficiary cards compiled and saved to your folder.
+                        </p>
+                    </div>
+                </div>
 
-                    {{-- Document Summary Preview Pill --}}
-                    <div class="mt-5 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/60 flex items-center justify-between gap-3 text-left">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 rounded-lg bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                </svg>
+                {{-- Document Info Box --}}
+                <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: 18px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 22px;">
+                    <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background-color: #d1fae5; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg style="width: 22px; height: 22px; stroke: #047857;" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <div style="font-size: 14px; font-weight: 700; color: #0f172a; line-height: 1.25;">
+                                Printable PDF Sheet
                             </div>
-                            <div class="truncate">
-                                <div class="text-xs font-semibold text-gray-900 dark:text-white truncate">Printable PDF Sheet</div>
-                                <div class="text-[10px] text-gray-500 dark:text-gray-400">High-Resolution • A4 Batch Layout</div>
+                            <div style="font-size: 12px; color: #64748b; margin-top: 2px; line-height: 1.25;">
+                                A4 Batch Layout
                             </div>
                         </div>
-                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 shrink-0">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            Ready
-                        </span>
                     </div>
-
-                    {{-- Primary & Secondary Actions (Side by Side) --}}
-                    <div class="grid grid-cols-2 gap-2.5 mt-5">
-                        <a href="{{ $latestGeneratedFileUrl }}" 
-                           target="_blank" 
-                           wire:click="$set('showPostGenerationModal', false)" 
-                           class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-150 shadow-sm hover:opacity-90 active:scale-[0.98] cursor-pointer"
-                           style="background-color: #059669 !important; color: #ffffff !important; border: 1px solid #047857 !important; text-decoration: none !important;">
-                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #ffffff !important;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                            <span style="color: #ffffff !important; font-weight: 700 !important;">Preview & Print</span>
-                        </a>
-                        
-                        <a href="{{ $latestGeneratedFileDownloadUrl }}" 
-                           wire:click="$set('showPostGenerationModal', false)" 
-                           class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-150 shadow-sm hover:bg-gray-50 active:scale-[0.98] cursor-pointer"
-                           style="background-color: #ffffff !important; color: #1f2937 !important; border: 1px solid #d1d5db !important; text-decoration: none !important;">
-                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #374151 !important;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            <span style="color: #1f2937 !important; font-weight: 700 !important;">Download PDF</span>
-                        </a>
+                    
+                    {{-- Ready Pill Badge --}}
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; background-color: #dcfce7; color: #15803d; flex-shrink: 0;">
+                        <svg style="width: 14px; height: 14px; fill: #15803d;" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Ready</span>
                     </div>
+                </div>
 
-                    {{-- Tertiary Action: Go to Folder --}}
-                    <button wire:click="dismissModalAndGoToFolder" 
-                            type="button"
-                            class="w-full flex items-center justify-center gap-2 py-2.5 px-3 mt-3 rounded-xl text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200/70 dark:bg-gray-800/40 dark:text-gray-300 dark:border-gray-700/60 dark:hover:bg-gray-800 transition-colors cursor-pointer">
-                        <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                {{-- Action Buttons (Side-by-Side Pill Shapes) --}}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px;">
+                    {{-- Preview & Print Button --}}
+                    <a href="{{ $latestGeneratedFileUrl }}" 
+                       target="_blank" 
+                       wire:click="$set('showPostGenerationModal', false)" 
+                       style="background-color: #059669 !important; color: #ffffff !important; border: 1px solid #047857 !important; border-radius: 9999px; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 13px; text-decoration: none !important; box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer; transition: opacity 0.15s ease;"
+                       onmouseover="this.style.opacity='0.95'" onmouseout="this.style.opacity='1'">
+                        <svg style="width: 16px; height: 16px; stroke: #ffffff !important;" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span style="color: #ffffff !important; font-weight: 700 !important;">Preview & Print</span>
+                    </a>
+                    
+                    {{-- Download PDF Button --}}
+                    <a href="{{ $latestGeneratedFileDownloadUrl }}" 
+                       wire:click="$set('showPostGenerationModal', false)" 
+                       style="background-color: #ffffff !important; color: #0f172a !important; border: 1.5px solid #e2e8f0 !important; border-radius: 9999px; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 13px; text-decoration: none !important; box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer; transition: background-color 0.15s ease;"
+                       onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='#ffffff'">
+                        <svg style="width: 16px; height: 16px; stroke: #0f172a !important;" fill="none" viewBox="0 0 24 24" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span style="color: #0f172a !important; font-weight: 700 !important;">Download PDF</span>
+                    </a>
+                </div>
+
+                {{-- Bottom Folder Directory Link --}}
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-top: 4px; color: #64748b; font-size: 13px; font-weight: 600; cursor: pointer; transition: color 0.15s ease;"
+                     onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#64748b'"
+                     wire:click="dismissModalAndGoToFolder">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <svg style="width: 17px; height: 17px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
-                        <span>View all sheets in Cards Folder</span>
-                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
+                        <span>View all in Cards Folder</span>
+                    </div>
+                    <svg style="width: 15px; height: 15px; color: #94a3b8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
                 </div>
             </div>
         </div>

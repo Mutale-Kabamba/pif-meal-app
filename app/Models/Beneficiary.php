@@ -31,6 +31,11 @@ class Beneficiary extends Model
         return $this->hasMany(MealLog::class);
     }
 
+    public function attendanceLogs()
+    {
+        return $this->hasMany(AttendanceLog::class);
+    }
+
     public function anomalyLogs()
     {
         return $this->hasMany(AnomalyLog::class);
