@@ -82,55 +82,88 @@
     @endif
 
     @if($showPostGenerationModal)
-        <div class="fixed inset-0 bg-gray-950/70 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300">
-            <div class="bg-white dark:bg-gray-900 max-w-md w-full rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden transform scale-100">
-                <div class="p-6 text-center border-b border-gray-100 dark:border-gray-800">
-                    <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
-                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <h3 class="text-base font-bold text-gray-900 dark:text-white">Card Batch Sheet Compiled Successfully!</h3>
-                    <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">The compiled PDF document has been safely saved to your operational system folder repository.</p>
-                </div>
+        <div class="fixed inset-0 bg-gray-950/60 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300">
+            <div class="bg-white dark:bg-gray-900 max-w-md w-full rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden relative">
                 
-                <div class="p-4 bg-gray-50/80 dark:bg-gray-950 flex flex-col gap-2.5">
-                    <a href="{{ $latestGeneratedFileUrl }}" 
-                       target="_blank" 
-                       wire:click="$set('showPostGenerationModal', false)" 
-                       class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-150 text-center shadow-md hover:opacity-95 cursor-pointer no-underline"
-                       style="background-color: #2563eb !important; color: #ffffff !important; border: 1px solid #1d4ed8 !important; text-decoration: none !important;">
-                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #ffffff !important;">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                {{-- Close button (top-right) --}}
+                <button wire:click="$set('showPostGenerationModal', false)" 
+                        type="button"
+                        class="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-300 transition-colors"
+                        title="Close">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <div class="p-6 text-center">
+                    {{-- Soft Badge Icon --}}
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/80 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <svg class="w-7 h-7 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span style="color: #ffffff !important; font-weight: 700 !important;">Print / Stream PDF Sheets Now</span>
-                    </a>
-                    
-                    <a href="{{ $latestGeneratedFileDownloadUrl }}" 
-                       wire:click="$set('showPostGenerationModal', false)" 
-                       class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-150 text-center shadow-md hover:opacity-95 cursor-pointer no-underline"
-                       style="background-color: #059669 !important; color: #ffffff !important; border: 1px solid #047857 !important; text-decoration: none !important;">
-                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #ffffff !important;">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        <span style="color: #ffffff !important; font-weight: 700 !important;">Download File Globally Now</span>
-                    </a>
-                    
+                    </div>
+
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+                        Card Batch Ready
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">
+                        Beneficiary cards have been compiled and safely archived in your cards folder.
+                    </p>
+
+                    {{-- Document Summary Preview Pill --}}
+                    <div class="mt-5 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-700/60 flex items-center justify-between gap-3 text-left">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-lg bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="truncate">
+                                <div class="text-xs font-semibold text-gray-900 dark:text-white truncate">Printable PDF Sheet</div>
+                                <div class="text-[10px] text-gray-500 dark:text-gray-400">High-Resolution • A4 Batch Layout</div>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 shrink-0">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Ready
+                        </span>
+                    </div>
+
+                    {{-- Primary & Secondary Actions (Side by Side) --}}
+                    <div class="grid grid-cols-2 gap-2.5 mt-5">
+                        <a href="{{ $latestGeneratedFileUrl }}" 
+                           target="_blank" 
+                           wire:click="$set('showPostGenerationModal', false)" 
+                           class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-150 shadow-sm hover:opacity-90 active:scale-[0.98] cursor-pointer"
+                           style="background-color: #059669 !important; color: #ffffff !important; border: 1px solid #047857 !important; text-decoration: none !important;">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #ffffff !important;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            <span style="color: #ffffff !important; font-weight: 700 !important;">Preview & Print</span>
+                        </a>
+                        
+                        <a href="{{ $latestGeneratedFileDownloadUrl }}" 
+                           wire:click="$set('showPostGenerationModal', false)" 
+                           class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-150 shadow-sm hover:bg-gray-50 active:scale-[0.98] cursor-pointer"
+                           style="background-color: #ffffff !important; color: #1f2937 !important; border: 1px solid #d1d5db !important; text-decoration: none !important;">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #374151 !important;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span style="color: #1f2937 !important; font-weight: 700 !important;">Download PDF</span>
+                        </a>
+                    </div>
+
+                    {{-- Tertiary Action: Go to Folder --}}
                     <button wire:click="dismissModalAndGoToFolder" 
                             type="button"
-                            class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-150 shadow-sm cursor-pointer"
-                            style="background-color: #ffffff !important; color: #1f2937 !important; border: 1px solid #d1d5db !important;">
-                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #374151 !important;">
+                            class="w-full flex items-center justify-center gap-2 py-2.5 px-3 mt-3 rounded-xl text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200/70 dark:bg-gray-800/40 dark:text-gray-300 dark:border-gray-700/60 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
-                        <span style="color: #1f2937 !important; font-weight: 700 !important;">Go To Folder History Directory</span>
-                    </button>
-                </div>
-
-                <div class="p-3 text-center bg-gray-50/90 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
-                    <button wire:click="$set('showPostGenerationModal', false)" 
-                            type="button"
-                            class="text-xs font-bold tracking-widest uppercase py-1 px-3 rounded hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors"
-                            style="color: #4b5563 !important;">
-                        Dismiss Dialog
+                        <span>View all sheets in Cards Folder</span>
+                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
                     </button>
                 </div>
             </div>
