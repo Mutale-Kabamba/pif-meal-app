@@ -2,7 +2,6 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\AttendanceLog;
 use App\Models\Beneficiary;
 use App\Models\MealLog;
 use App\Models\Project;
@@ -10,30 +9,29 @@ use App\Models\Team;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class ProjectRegistersPage extends Page
+class MealDistributionRegisterPage extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+    protected static ?string $navigationIcon = 'heroicon-o-cake';
     protected static ?string $navigationGroup = 'Management';
-    protected static ?string $title = 'Attendance Register (Training / Classes)';
-    protected static ?string $slug = 'project-registers';
-    protected static ?int $navigationSort = 3;
-    protected static string $view = 'filament.pages.project-registers-page';
+    protected static ?string $title = 'Meal Distribution Register (Cooks)';
+    protected static ?string $slug = 'meal-distribution-register';
+    protected static ?int $navigationSort = 4;
+    protected static string $view = 'filament.pages.meal-distribution-register-page';
 
     public static function getNavigationLabel(): string
     {
-        return 'Attendance Register';
+        return 'Meal Distribution Register';
     }
 
-    public string  $scope            = 'all'; // all | education | football
+    public string  $scope             = 'all'; // all | education | football
     public ?string $selectedProjectId = '';
     public ?string $selectedTeamId    = '';
     public int     $filterMonth;
     public int     $filterYear;
-    public array   $weeksStructure  = [];
+    public array   $weeksStructure   = [];
 
     public static function canAccess(): bool
     {
@@ -42,20 +40,19 @@ class ProjectRegistersPage extends Page
             User::ROLE_HEAD_OF_PROGRAMMES,
             User::ROLE_SYSTEM_MANAGER,
             User::ROLE_PROJECT_OFFICER,
-            User::ROLE_COACH,
         ]);
     }
 
     public function getHeading(): string
     {
         $monthName = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1)->format('F Y');
-        return "Attendance Register (Training / Classes) — {$monthName}";
+        return "Meal Distribution Register (Cooks) — {$monthName}";
     }
 
     public function getSubheading(): ?string
     {
         $monthName = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1)->format('F Y');
-        return "Football training & literacy class session attendance marked by coaches and project officers for {$monthName}";
+        return "Daily feeding records strictly fed from Kitchen Cook Terminal distributions for {$monthName}";
     }
 
     public function mount(): void
@@ -66,11 +63,6 @@ class ProjectRegistersPage extends Page
             $this->selectedProjectId = (string) $user->assigned_project_id;
             $project = Project::find($user->assigned_project_id);
             $this->scope = $project?->programme_type ?? 'all';
-        } elseif ($user?->isCoach()) {
-            $team = Team::where('coach_id', $user->id)->first();
-            $this->selectedProjectId = $team ? (string) $team->project_id : '';
-            $this->selectedTeamId    = $team ? (string) $team->id : '';
-            $this->scope = 'football';
         } else {
             $first = Project::where('is_active', true)->orderBy('name')->first();
             $this->selectedProjectId = $first ? (string) $first->id : '';
@@ -85,7 +77,7 @@ class ProjectRegistersPage extends Page
     public function updatedScope(): void
     {
         $user = auth()->user();
-        if (!$user?->isProjectOfficer() && !$user?->isCoach()) {
+        if (!$user?->isProjectOfficer()) {
             $this->selectedProjectId = '';
             $this->selectedTeamId    = '';
         }
@@ -94,16 +86,7 @@ class ProjectRegistersPage extends Page
 
     public function updatedSelectedProjectId(): void
     {
-        $user = auth()->user();
-        if ($user?->isProjectOfficer() && $user->assigned_project_id) {
-            $this->selectedProjectId = (string) $user->assigned_project_id;
-        } elseif ($user?->isCoach()) {
-            $team = Team::where('coach_id', $user->id)->first();
-            $this->selectedProjectId = $team ? (string) $team->project_id : $this->selectedProjectId;
-        }
-        if (!$user?->isCoach()) {
-            $this->selectedTeamId = '';
-        }
+        $this->selectedTeamId = '';
         $this->buildSmartCalendarStructure();
     }
 
@@ -115,109 +98,37 @@ class ProjectRegistersPage extends Page
     public function updatedFilterMonth(): void { $this->buildSmartCalendarStructure(); }
     public function updatedFilterYear(): void  { $this->buildSmartCalendarStructure(); }
 
-    public function canUserMark(): bool
-    {
-        $user = auth()->user();
-        return (bool) ($user && ($user->isCoach() || $user->isProjectOfficer()));
-    }
-
-    public function toggleAttendance(int $beneficiaryId, int $day): void
-    {
-        if (!$this->canUserMark()) {
-            Notification::make()
-                ->title('Monitoring Mode')
-                ->body('Register marking is restricted to Coaches and Project Officers. Administrators have read-only monitoring access.')
-                ->info()
-                ->send();
-            return;
-        }
-
-        $user = auth()->user();
-        $date = Carbon::createFromDate($this->filterYear, $this->filterMonth, $day)->toDateString();
-        $beneficiary = Beneficiary::find($beneficiaryId);
-        if (!$beneficiary) return;
-
-        $existing = AttendanceLog::where('beneficiary_id', $beneficiaryId)
-            ->whereDate('attended_at', $date)
-            ->first();
-
-        if ($existing) {
-            $existing->delete();
-            Notification::make()
-                ->title("Marked absent: {$beneficiary->name} on " . Carbon::parse($date)->format('M j'))
-                ->info()
-                ->duration(2000)
-                ->send();
-        } else {
-            $projectId = $this->selectedProjectId ?: ($beneficiary->projects()->value('projects.id') ?? 1);
-            $project = Project::find($projectId);
-            $activity = $project?->programme_type === Project::PROGRAMME_FOOTBALL 
-                ? AttendanceLog::ACTIVITY_TRAINING 
-                : AttendanceLog::ACTIVITY_CLASS_SESSION;
-
-            AttendanceLog::create([
-                'beneficiary_id'      => $beneficiaryId,
-                'project_id'          => $projectId,
-                'team_id'             => $beneficiary->team_id,
-                'recorded_by_user_id' => $user->id,
-                'activity_type'       => $activity,
-                'attended_at'         => $date,
-                'status'              => 'present',
-            ]);
-
-            Notification::make()
-                ->title("Marked present: {$beneficiary->name} on " . Carbon::parse($date)->format('M j'))
-                ->success()
-                ->duration(2000)
-                ->send();
-        }
-    }
-
     public function exportPdf(): StreamedResponse
     {
         $viewData = $this->getViewData();
         $beneficiaries = $viewData['beneficiaries'];
         $project = $this->selectedProjectId ? Project::find($this->selectedProjectId) : Project::first();
         $team = $this->selectedTeamId ? Team::find($this->selectedTeamId) : null;
-        $user = auth()->user();
 
         $carbonDate = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1);
-
         $beneficiaryIds = $beneficiaries->pluck('id');
-        $attLogs = AttendanceLog::whereIn('beneficiary_id', $beneficiaryIds)
-            ->whereMonth('attended_at', $this->filterMonth)
-            ->whereYear('attended_at', $this->filterYear)
+
+        $mealLogs = MealLog::whereIn('beneficiary_id', $beneficiaryIds)
+            ->whereMonth('served_at', $this->filterMonth)
+            ->whereYear('served_at', $this->filterYear)
             ->get();
 
         $matrix = [];
-        foreach ($attLogs as $log) {
-            $d = Carbon::parse($log->attended_at)->day;
-            $matrix[$log->beneficiary_id][$d] = $log->status;
+        foreach ($mealLogs as $log) {
+            $d = Carbon::parse($log->served_at)->day;
+            $matrix[$log->beneficiary_id][$d] = ($matrix[$log->beneficiary_id][$d] ?? 0) + 1;
         }
 
         if ($team && !$project) {
             $project = $team->project;
         }
 
-        $isFootball = ($project && $project->programme_type === Project::PROGRAMME_FOOTBALL)
-            || ($team && $team->project?->programme_type === Project::PROGRAMME_FOOTBALL);
+        // Identify cook terminal operators who recorded the meals
+        $cookIds = $mealLogs->pluck('served_by_user_id')->unique()->filter();
+        $cooks = User::whereIn('id', $cookIds)->pluck('name')->toArray();
+        $cooksLabel = !empty($cooks) ? implode(', ', $cooks) : 'Kitchen Cook Terminal';
 
-        if ($isFootball) {
-            $coachUser = null;
-            if ($team && $team->coach) {
-                $coachUser = $team->coach;
-            } elseif ($user && $user->isCoach()) {
-                $coachUser = $user;
-            } elseif ($project && ($firstTeamCoach = Team::where('project_id', $project->id)->whereNotNull('coach_id')->first()?->coach)) {
-                $coachUser = $firstTeamCoach;
-            }
-            $instructorName = $coachUser ? (str_starts_with(strtolower($coachUser->name), 'coach') ? $coachUser->name : 'Coach ' . $coachUser->name) : 'Assigned Coach';
-        } else {
-            $officerUser = ($user && $user->isProjectOfficer()) ? $user : User::where('role', User::ROLE_PROJECT_OFFICER)->first();
-            $instructorName = $officerUser ? $officerUser->name : ($user?->name ?? 'Class Instructor');
-        }
-
-        $pdf = Pdf::loadView('pdf.attendance-register-sheet', [
+        $pdf = Pdf::loadView('pdf.meal-distribution-register-sheet', [
             'project'         => $project,
             'team'            => $team,
             'beneficiaries'   => $beneficiaries,
@@ -226,12 +137,13 @@ class ProjectRegistersPage extends Page
             'month'           => $this->filterMonth,
             'year'            => $this->filterYear,
             'monthName'       => $carbonDate->format('F Y'),
-            'instructorName'  => $instructorName,
+            'cooksLabel'      => $cooksLabel,
+            'totalMeals'      => $mealLogs->count(),
             'generatedAt'     => now()->format('d M Y, H:i'),
-            'docRef'          => 'PIF-REG-' . ($project ? strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $project->name), 0, 8)) : 'MAIN') . '-' . now()->format('Ymd'),
+            'docRef'          => 'PIF-MEAL-' . ($project ? strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $project->name), 0, 8)) : 'MAIN') . '-' . now()->format('Ymd'),
         ])->setPaper('a4', 'landscape');
 
-        $filename = 'PIF-Attendance-Register-' . ($project ? str_replace(' ', '-', $project->name) : 'All') . '-' . $carbonDate->format('Y-m') . '.pdf';
+        $filename = 'PIF-Meal-Distribution-Register-' . ($project ? str_replace(' ', '-', $project->name) : 'All') . '-' . $carbonDate->format('Y-m') . '.pdf';
 
         return response()->streamDownload(
             fn () => print($pdf->output()),
@@ -281,7 +193,6 @@ class ProjectRegistersPage extends Page
     {
         $user      = auth()->user();
         $isOfficer = $user?->isProjectOfficer();
-        $isCoach   = $user?->isCoach();
 
         // -- Projects dropdown (filtered by scope) ----------------------------
         $projectsQuery = Project::where('is_active', true);
@@ -306,10 +217,7 @@ class ProjectRegistersPage extends Page
             ->with('team:id,name')
             ->select(['id', 'name', 'team_id', 'shortcode']);
 
-        if ($isCoach) {
-            $coachTeam = Team::where('coach_id', $user->id)->first();
-            $benefQuery->where('team_id', $coachTeam?->id ?? 0);
-        } elseif ($this->selectedTeamId) {
+        if ($this->selectedTeamId) {
             $benefQuery->where('team_id', $this->selectedTeamId);
         } elseif ($this->selectedProjectId) {
             $benefQuery->inProject((int) $this->selectedProjectId);
@@ -322,63 +230,61 @@ class ProjectRegistersPage extends Page
         $beneficiaries  = $benefQuery->orderBy('name')->get();
         $beneficiaryIds = $beneficiaries->pluck('id');
 
-        // -- Attendance Matrix (Marked by Coaches / Project Officers) ----------
-        $attendanceMatrix = [];
+        // -- Meal Distribution Matrix (Fed directly from Cook Terminal) --------
+        $mealMatrix  = [];
+        $dailyTotals = [];
+        $totalMealsCount = 0;
+        $fedBeneficiaryIds = [];
+
         if ($beneficiaryIds->isNotEmpty()) {
-            $attLogs = AttendanceLog::whereIn('beneficiary_id', $beneficiaryIds)
-                ->whereMonth('attended_at', $this->filterMonth)
-                ->whereYear('attended_at', $this->filterYear)
-                ->select(['beneficiary_id', 'attended_at', 'status'])
+            $logs = MealLog::whereIn('beneficiary_id', $beneficiaryIds)
+                ->whereMonth('served_at', $this->filterMonth)
+                ->whereYear('served_at', $this->filterYear)
+                ->select(['beneficiary_id', 'served_at'])
                 ->get();
 
-            foreach ($attLogs as $log) {
-                $day = Carbon::parse($log->attended_at)->day;
-                $attendanceMatrix[$log->beneficiary_id][$day] = $log->status;
+            $totalMealsCount = $logs->count();
+
+            foreach ($logs as $log) {
+                $day = Carbon::parse($log->served_at)->day;
+                $mealMatrix[$log->beneficiary_id][$day] = ($mealMatrix[$log->beneficiary_id][$day] ?? 0) + 1;
+                $dailyTotals[$day] = ($dailyTotals[$day] ?? 0) + 1;
+                $fedBeneficiaryIds[$log->beneficiary_id] = true;
             }
         }
 
-        // -- Activity & Register label -----------------------------------------
-        if ($isCoach) {
-            $coachTeamName = Team::where('coach_id', $user->id)->value('name') ?? '-';
-            $activityLabel = 'Football Training';
-            $registerLabel = 'Football Team: ' . $coachTeamName;
-        } elseif ($this->selectedTeamId && $isFootballProject) {
+        // -- Register label ----------------------------------------------------
+        if ($this->selectedTeamId && $isFootballProject) {
             $teamName      = $teams->firstWhere('id', $this->selectedTeamId)?->name ?? '-';
-            $activityLabel = 'Football Training';
             $registerLabel = 'Football Team: ' . $teamName;
         } elseif ($selectedProject) {
-            $activityLabel = $isFootballProject ? 'Football Training' : 'Literacy Class / Session';
             $registerLabel = 'Project: ' . $selectedProject->name;
         } elseif ($this->scope === Project::PROGRAMME_EDUCATION) {
-            $activityLabel = 'Literacy / Education Class Sessions';
             $registerLabel = 'All Education Beneficiaries';
         } elseif ($this->scope === Project::PROGRAMME_FOOTBALL) {
-            $activityLabel = 'Football Training Sessions';
             $registerLabel = 'All Football Beneficiaries';
         } else {
-            $activityLabel = 'Training & Class Sessions';
             $registerLabel = 'All Beneficiaries';
         }
 
         $monthCarbon = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1);
 
         return [
-            'projects'           => $projects,
-            'teams'              => $teams,
-            'beneficiaries'      => $beneficiaries,
-            'attendanceMatrix'   => $attendanceMatrix,
-            'activeMatrix'       => $attendanceMatrix,
-            'activityLabel'      => $activityLabel,
-            'registerLabel'      => $registerLabel,
-            'selectedMonthName'  => $monthCarbon->format('F Y'),
-            'selectedMonthShort' => $monthCarbon->format('M Y'),
-            'isProjectOfficer'   => $isOfficer,
-            'isCoach'            => $isCoach,
-            'canMark'            => $this->canUserMark(),
-            'lockScope'          => $isOfficer || $isCoach,
-            'lockProject'        => $isOfficer || $isCoach,
-            'showTeamFilter'     => $isFootballProject && !$isCoach,
-            'monthsList'         => [
+            'projects'              => $projects,
+            'teams'                 => $teams,
+            'beneficiaries'         => $beneficiaries,
+            'mealMatrix'            => $mealMatrix,
+            'dailyTotals'           => $dailyTotals,
+            'totalMealsCount'       => $totalMealsCount,
+            'uniqueBeneficiariesFed'=> count($fedBeneficiaryIds),
+            'registerLabel'         => $registerLabel,
+            'selectedMonthName'     => $monthCarbon->format('F Y'),
+            'selectedMonthShort'    => $monthCarbon->format('M Y'),
+            'isProjectOfficer'      => $isOfficer,
+            'lockScope'             => (bool) $isOfficer,
+            'lockProject'           => (bool) $isOfficer,
+            'showTeamFilter'        => $isFootballProject,
+            'monthsList'            => [
                 1 => 'January',   2 => 'February', 3 => 'March',     4 => 'April',
                 5 => 'May',       6 => 'June',     7 => 'July',      8 => 'August',
                 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December',

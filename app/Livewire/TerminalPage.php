@@ -30,6 +30,8 @@ class TerminalPage extends Component
 
     public function mount()
     {
+        abort_unless(Auth::user()?->isCook(), 403, 'Access denied. The Kitchen Terminal is strictly accessible to cooks only.');
+
         $user = Auth::user();
         $this->cookName    = $user->name;
         $this->projectName = $user->assignedProject?->name ?? 'All Projects';

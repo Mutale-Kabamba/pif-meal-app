@@ -29,11 +29,11 @@ class User extends Authenticatable implements FilamentUser
 
     /**
      * Determine if the user can access the Filament admin panel in production.
+     * Cooks are restricted to the Kitchen Terminal only.
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        // Allows access to your seeded users or anyone with valid credentials on the cloud
-        return true;
+        return !$this->isCook();
     }
 
     public function isHeadOfProgrammes(): bool

@@ -108,11 +108,11 @@
             border: 1px solid #0f172a;
         }
         .th-student-col {
-            width: 220px;
-            min-width: 200px;
-            text-align: left;
-            padding: 2px 6px;
-            font-size: 7.5px;
+            width: 145px;
+            max-width: 155px;
+            text-align: left !important;
+            padding: 2px 6px !important;
+            font-size: 7px;
         }
         .th-week {
             background-color: #f8fafc;
@@ -148,26 +148,28 @@
 
         /* Student Row */
         .td-student-details {
-            width: 220px;
-            min-width: 200px;
-            text-align: left;
-            padding: 2px 4px 2px 6px;
+            width: 145px;
+            max-width: 155px;
+            text-align: left !important;
+            padding: 2px 4px 2px 6px !important;
             border-right: 1px solid #94a3b8;
             overflow: hidden;
         }
         .student-name {
+            text-align: left !important;
             font-weight: bold;
             color: #0f172a;
-            font-size: 7.5px;
+            font-size: 7px;
             line-height: 1.2;
             white-space: nowrap;
             overflow: hidden;
         }
         .student-sub {
-            font-size: 6px;
+            text-align: left !important;
+            font-size: 5.5px;
             color: #475569;
             line-height: 1.2;
-            margin-top: 1px;
+            margin-top: 0.5px;
             white-space: nowrap;
             overflow: hidden;
         }
@@ -251,10 +253,10 @@
             border-top: 1px solid #0f172a;
         }
         .td-aggregate-label {
-            width: 220px;
-            min-width: 200px;
-            text-align: left;
-            padding-left: 6px;
+            width: 145px;
+            max-width: 155px;
+            text-align: left !important;
+            padding-left: 6px !important;
             font-size: 6.5px;
             text-transform: uppercase;
             font-weight: bold;
@@ -322,12 +324,12 @@
             <td style="width: 60%;">
                 <div class="logo-text">play it forward</div>
                 <div class="header-subtitle">
-                    {{ $project ? strtoupper($project->name) : 'PLAY IT FORWARD PROGRAMMES' }} &bull; OFFICIAL ATTENDANCE REGISTER
+                    {{ $project ? strtoupper($project->name) : 'PLAY IT FORWARD PROGRAMMES' }} | OFFICIAL ATTENDANCE REGISTER
                 </div>
             </td>
             <td style="width: 40%;">
                 <div class="doc-title">SCHEDULE ATTENDANCE SHEET (UP TO CURRENT DATE)</div>
-                <div class="doc-meta">Generated: {{ $generatedAt }} &bull; Doc: {{ $docRef }}</div>
+                <div class="doc-meta">Generated: {{ $generatedAt }} | Doc: {{ $docRef }}</div>
             </td>
         </tr>
     </table>
@@ -385,7 +387,7 @@
             <tr>
                 <th class="th-main-header th-student-col" rowspan="3">
                     STUDENT DETAILS<br>
-                    <span style="font-size: 5.5px; font-weight: normal; color: #64748b;">NAME &bull; {{ $isFootball ? 'TEAM' : 'CLASS' }} &bull; BENEFICIARY CODE</span>
+                    <span style="font-size: 5.5px; font-weight: normal; color: #64748b;">NAME | {{ $isFootball ? 'TEAM' : 'CLASS' }} | BENEFICIARY CODE</span>
                 </th>
                 <th class="th-main-header" colspan="{{ $totalDaysCount }}">
                     MONTH: {{ strtoupper($monthName) }}
@@ -435,7 +437,7 @@
                                 $bTeam = $beneficiary->team ? $beneficiary->team->name : ($team ? $team->name : ($project ? $project->name : 'PIF'));
                                 $bCode = $beneficiary->shortcode ?: ('PIF-' . str_pad($beneficiary->id, 5, '0', STR_PAD_LEFT));
                             @endphp
-                            {{ $isFootball ? 'Team' : 'Class' }}: {{ $bTeam }} &bull; Code: {{ $bCode }}
+                            {{ $isFootball ? 'Team' : 'Class' }}: {{ $bTeam }} | Code: {{ $bCode }}
                         </div>
                     </td>
 
@@ -543,7 +545,7 @@
                 <div class="sig-sub">{{ $isFootball ? 'COACH SIGNATURE • DATE' : 'CLASS INSTRUCTOR SIGNATURE • DATE' }}</div>
                 <div style="height: 5px;"></div>
                 <div class="sig-line"></div>
-                <div class="sig-sub">HEAD OF PROGRAMMES / QUALITY VERIFIER &bull; DATE</div>
+                <div class="sig-sub">HEAD OF PROGRAMMES / QUALITY VERIFIER | DATE</div>
             </td>
         </tr>
     </table>

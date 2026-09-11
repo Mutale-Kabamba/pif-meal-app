@@ -3222,3 +3222,15 @@ Did you mean one of these?
 #23 C:/Users/mukuk/.gemini/antigravity-ide/brain/cb98419e-96c3-4bde-be99-e48290cc15fa/scratch/verify_attendance_system.php(42): App/Filament/Pages/MarkAttendancePage->saveAttendance()
 #24 {main}
 "} 
+[2026-09-11 15:40:39] local.ERROR: Allowed memory size of 134217728 bytes exhausted (tried to allocate 147456 bytes) {"userId":2,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 134217728 bytes exhausted (tried to allocate 147456 bytes) at C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/dompdf/dompdf/lib/Cpdf.php:3966)
+[stacktrace]
+#0 {main}
+"} 
+[2026-09-11 15:40:48] local.ERROR: Allowed memory size of 134217728 bytes exhausted (tried to allocate 147456 bytes) {"userId":2,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 134217728 bytes exhausted (tried to allocate 147456 bytes) at C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/dompdf/dompdf/lib/Cpdf.php:3966)
+[stacktrace]
+#0 {main}
+"} 
+[2026-09-11 15:41:23] local.ERROR: Allowed memory size of 134217728 bytes exhausted (tried to allocate 147456 bytes) {"userId":2,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 134217728 bytes exhausted (tried to allocate 147456 bytes) at C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/dompdf/dompdf/lib/Cpdf.php:3966)
+[stacktrace]
+#0 {main}
+"} 

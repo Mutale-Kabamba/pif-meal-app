@@ -14,9 +14,12 @@ Route::get('/login', function () {
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Protected Matrix
-Route::middleware(['auth'])->group(function () {
+// Protected Matrix - Terminal restricted exclusively to Cooks
+Route::middleware(['auth', 'can:access_terminal'])->group(function () {
     Route::get('/terminal', TerminalPage::class)->name('terminal');
+});
+
+Route::middleware(['auth'])->group(function () {
 
     /**
      * Secure Download & Print Proxy Endpoint Route
