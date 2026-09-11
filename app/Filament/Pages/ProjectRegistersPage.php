@@ -36,6 +36,18 @@ class ProjectRegistersPage extends Page
         ]);
     }
 
+    public function getHeading(): string
+    {
+        $monthName = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1)->format('F Y');
+        return "Monthly Attendance Registers â€” {$monthName}";
+    }
+
+    public function getSubheading(): ?string
+    {
+        $monthName = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1)->format('F Y');
+        return "Daily attendance and meal distribution records for {$monthName}";
+    }
+
     public function mount(): void
     {
         $user = auth()->user();
@@ -192,10 +204,10 @@ class ProjectRegistersPage extends Page
 
         // -- Register label ----------------------------------------------------
         if ($isCoach) {
-            $coachTeamName = Team::where('coach_id', $user->id)->value('name') ?? '—';
+            $coachTeamName = Team::where('coach_id', $user->id)->value('name') ?? '-';
             $registerLabel = 'Team: ' . $coachTeamName;
         } elseif ($this->selectedTeamId && $isFootballProject) {
-            $teamName      = $teams->firstWhere('id', $this->selectedTeamId)?->name ?? '—';
+            $teamName      = $teams->firstWhere('id', $this->selectedTeamId)?->name ?? '-';
             $registerLabel = 'Team: ' . $teamName;
         } elseif ($selectedProject) {
             $registerLabel = 'Project: ' . $selectedProject->name;
@@ -207,21 +219,25 @@ class ProjectRegistersPage extends Page
             $registerLabel = 'All Beneficiaries';
         }
 
+        $monthCarbon = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1);
+
         return [
-            'projects'         => $projects,
-            'teams'            => $teams,
-            'beneficiaries'    => $beneficiaries,
-            'mealMatrix'       => $mealMatrix,
-            'registerLabel'    => $registerLabel,
-            'isProjectOfficer' => $isOfficer,
-            'isCoach'          => $isCoach,
-            'lockScope'        => $isOfficer || $isCoach,
-            'lockProject'      => $isOfficer || $isCoach,
-            'showTeamFilter'   => $isFootballProject && !$isCoach,
-            'monthsList'       => [
-                1 => 'Jan',  2 => 'Feb',  3 => 'Mar',  4 => 'Apr',
-                5 => 'May',  6 => 'Jun',  7 => 'Jul',  8 => 'Aug',
-                9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec',
+            'projects'           => $projects,
+            'teams'              => $teams,
+            'beneficiaries'      => $beneficiaries,
+            'mealMatrix'         => $mealMatrix,
+            'registerLabel'      => $registerLabel,
+            'selectedMonthName'  => $monthCarbon->format('F Y'),
+            'selectedMonthShort' => $monthCarbon->format('M Y'),
+            'isProjectOfficer'   => $isOfficer,
+            'isCoach'            => $isCoach,
+            'lockScope'          => $isOfficer || $isCoach,
+            'lockProject'        => $isOfficer || $isCoach,
+            'showTeamFilter'     => $isFootballProject && !$isCoach,
+            'monthsList'         => [
+                1 => 'January',   2 => 'February', 3 => 'March',     4 => 'April',
+                5 => 'May',       6 => 'June',     7 => 'July',      8 => 'August',
+                9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December',
             ],
             'yearsList' => range(now()->year - 1, now()->year + 2),
         ];

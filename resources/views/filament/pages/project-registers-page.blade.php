@@ -62,10 +62,18 @@
                 </div>
             </div>
 
-            {{-- Register scope summary strip --}}
-            <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center gap-2 flex-wrap">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Viewing:</span>
-                <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{{ $registerLabel }}</span>
+            {{-- Register scope & month summary strip --}}
+            <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center gap-3 flex-wrap">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Viewing:</span>
+                    <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{{ $registerLabel }}</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Month:</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800">
+                        {{ $selectedMonthName }}
+                    </span>
+                </div>
                 <span class="ml-auto text-[10px] text-gray-400">
                     {{ $beneficiaries->count() }} beneficiar{{ $beneficiaries->count() === 1 ? 'y' : 'ies' }}
                 </span>
@@ -75,32 +83,40 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden dark:bg-gray-900 dark:border-gray-800">
             @if($beneficiaries->isEmpty())
                 <div class="p-6 text-center text-gray-500 dark:text-gray-400 text-xs">
-                    No active programmatic metadata register elements captured for boundaries.
+                    No active beneficiaries found for {{ $selectedMonthName }}.
                 </div>
             @else
                 <div class="overflow-x-auto max-h-[650px] overflow-y-auto">
                     <table class="w-full text-left border-collapse min-w-max table-fixed">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 text-[10px] font-black tracking-widest border-b border-gray-200 dark:border-gray-700">
-                                <th class="p-2 sticky left-0 bg-gray-100 dark:bg-gray-800 z-30 w-[180px] border-r border-gray-200 dark:border-gray-700"></th>
+                                <th class="p-2 sticky left-0 bg-gray-100 dark:bg-gray-800 z-30 w-[180px] border-r border-gray-200 dark:border-gray-700 text-center font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                                    {{ $selectedMonthShort }}
+                                </th>
                                 @foreach($weeksStructure as $weekNum => $days)
                                     <th colspan="{{ count($days) }}" class="p-1 text-center border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 font-sans uppercase">
                                         Week {{ $weekNum }}
                                     </th>
                                 @endforeach
-                                <th class="p-2 text-center w-14 bg-gray-100 dark:bg-gray-800 sticky right-0 z-30 border-l border-gray-200 dark:border-gray-700"></th>
+                                <th class="p-2 text-center w-14 bg-gray-100 dark:bg-gray-800 sticky right-0 z-30 border-l border-gray-200 dark:border-gray-700 font-bold uppercase text-[9px]">
+                                    Summary
+                                </th>
                             </tr>
                             
                             <tr class="bg-gray-50 text-gray-500 dark:bg-gray-800/40 dark:text-gray-400 text-[10px] font-bold border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
-                                <th class="p-2 sticky left-0 bg-gray-50 dark:bg-gray-800 z-30 w-[180px] border-r border-gray-200 dark:border-gray-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">Beneficiary Name</th>
+                                <th class="p-2 sticky left-0 bg-gray-50 dark:bg-gray-800 z-30 w-[180px] border-r border-gray-200 dark:border-gray-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                                    Beneficiary Name
+                                </th>
                                 @foreach($weeksStructure as $weekNum => $days)
                                     @foreach($days as $dayMeta)
-                                        <th class="p-1 text-center w-8 border-r border-gray-200 dark:border-gray-700 font-mono text-[9px]" title="Day {{ sprintf('%02d', $dayMeta['day_number']) }}">
+                                        <th class="p-1 text-center w-8 border-r border-gray-200 dark:border-gray-700 font-mono text-[9px]" title="Day {{ sprintf('%02d', $dayMeta['day_number']) }} ({{ $selectedMonthShort }})">
                                             {{ $dayMeta['day_label'] }}<span class="block text-[8px] font-normal text-gray-400">{{ sprintf('%02d', $dayMeta['day_number']) }}</span>
                                         </th>
                                     @endforeach
                                 @endforeach
-                                <th class="p-2 text-center w-14 bg-gray-100 dark:bg-gray-800 sticky right-0 z-30 border-l border-gray-200 dark:border-gray-700 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.05)] text-xs font-black">Total</th>
+                                <th class="p-2 text-center w-14 bg-gray-100 dark:bg-gray-800 sticky right-0 z-30 border-l border-gray-200 dark:border-gray-700 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.05)] text-xs font-black">
+                                    Total
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-xs">
@@ -120,13 +136,11 @@
                                             @endphp
                                             <td class="p-0.5 border-r border-gray-100 dark:border-gray-800 text-center select-none">
                                                 @if($hasEaten)
-                                                    <span class="inline-flex items-center justify-center w-6 h-5 text-[11px] font-black rounded" 
-                                                          style="background-color: #22c55e !important; color: #ffffff !important; display: inline-flex !important;" 
+                                                    <span class="inline-flex items-center justify-center w-6 h-5 text-[11px] font-black rounded text-white bg-emerald-500 shadow-sm" 
                                                           title="Present (Meal Logged)">✓</span>
                                                 @else
-                                                    <span class="inline-flex items-center justify-center w-6 h-5 text-[10px] font-black rounded" 
-                                                          style="background-color: #ef4444 !important; color: #ffffff !important; display: inline-flex !important;" 
-                                                          title="Absent (Missed)">✕</span>
+                                                    <span class="inline-flex items-center justify-center w-6 h-5 text-[10px] font-bold rounded text-gray-400 bg-gray-100 dark:bg-gray-800 dark:text-gray-500" 
+                                                          title="Absent (Missed)">—</span>
                                                 @endif
                                             </td>
                                         @endforeach
