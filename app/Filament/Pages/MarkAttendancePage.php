@@ -7,25 +7,50 @@ use App\Models\Beneficiary;
 use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MarkAttendancePage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
     protected static ?string $navigationGroup = 'Management';
-    protected static ?string $title = 'Mark Attendance';
+    protected static ?string $title = 'Attendance Register';
     protected static ?string $slug = 'mark-attendance';
     protected static ?int $navigationSort = 2;
     protected static string $view = 'filament.pages.mark-attendance-page';
 
+    public static function getNavigationLabel(): string
+    {
+        $user = auth()->user();
+        if ($user?->isCoach()) {
+            return 'Mark Training Attendance';
+        } elseif ($user?->isProjectOfficer()) {
+            return 'Mark Session Attendance';
+        }
+        return 'Live Session Attendance';
+    }
+
     public string $sessionDate = '';
+    public string $sessionTime = '09:00 - 11:30';
+    public string $sessionTitle = '';
     public string $scope = 'all';
     public ?string $selectedProjectId = '';
     public ?string $selectedTeamId = '';
     public string $searchQuery = '';
-    public array $attendanceStates = []; // beneficiaryId => bool
+    public string $statusFilter = 'all'; // all | present | absent | late | apology
+
+    /**
+     * beneficiaryId => 'present' | 'absent' | 'late' | 'apology'
+     */
+    public array $attendanceStatuses = [];
+
+    /**
+     * beneficiaryId => optional note string
+     */
+    public array $attendanceNotes = [];
 
     public static function canAccess(): bool
     {
@@ -57,11 +82,13 @@ class MarkAttendancePage extends Page
             $this->selectedProjectId = $first ? (string) $first->id : '';
         }
 
+        $this->updateDefaultSessionTitle();
         $this->loadAttendanceRoster();
     }
 
     public function updatedSessionDate(): void
     {
+        $this->updateDefaultSessionTitle();
         $this->loadAttendanceRoster();
     }
 
@@ -75,11 +102,13 @@ class MarkAttendancePage extends Page
         if (!$user?->isCoach()) {
             $this->selectedTeamId = '';
         }
+        $this->updateDefaultSessionTitle();
         $this->loadAttendanceRoster();
     }
 
     public function updatedSelectedTeamId(): void
     {
+        $this->updateDefaultSessionTitle();
         $this->loadAttendanceRoster();
     }
 
@@ -90,7 +119,30 @@ class MarkAttendancePage extends Page
             $this->selectedProjectId = '';
             $this->selectedTeamId    = '';
         }
+        $this->updateDefaultSessionTitle();
         $this->loadAttendanceRoster();
+    }
+
+    protected function updateDefaultSessionTitle(): void
+    {
+        $project = $this->selectedProjectId ? Project::find($this->selectedProjectId) : null;
+        $dateFormatted = Carbon::parse($this->sessionDate)->format('M d');
+        if ($project && $project->programme_type === Project::PROGRAMME_FOOTBALL) {
+            $this->sessionTitle = "Session ({$dateFormatted}): Tactical Drills, Physical Training & Match Practice";
+        } else {
+            $this->sessionTitle = "Session ({$dateFormatted}): Literacy Module Recap, Guided Reading & Evaluation";
+        }
+    }
+
+    public function syncSessionRoster(): void
+    {
+        $this->loadAttendanceRoster();
+        Notification::make()
+            ->title('Session Roster Synced')
+            ->body('Roster refreshed from enrolled beneficiary database.')
+            ->success()
+            ->duration(2000)
+            ->send();
     }
 
     public function loadAttendanceRoster(): void
@@ -99,44 +151,92 @@ class MarkAttendancePage extends Page
         $beneficiaries = $viewData['beneficiaries'];
         $beneficiaryIds = $beneficiaries->pluck('id')->toArray();
 
-        // Query already logged attendance for this specific date
-        $alreadyPresent = AttendanceLog::whereIn('beneficiary_id', $beneficiaryIds)
+        // Query existing attendance logs for this session date
+        $existingLogs = AttendanceLog::whereIn('beneficiary_id', $beneficiaryIds)
             ->whereDate('attended_at', $this->sessionDate)
-            ->where('status', 'present')
-            ->pluck('beneficiary_id')
-            ->toArray();
+            ->get()
+            ->keyBy('beneficiary_id');
 
-        $this->attendanceStates = [];
+        $this->attendanceStatuses = [];
+        $this->attendanceNotes = [];
+
         foreach ($beneficiaryIds as $id) {
-            $this->attendanceStates[$id] = in_array($id, $alreadyPresent);
+            if (isset($existingLogs[$id])) {
+                $log = $existingLogs[$id];
+                $this->attendanceStatuses[$id] = in_array($log->status, ['present', 'absent', 'late', 'apology']) ? $log->status : 'present';
+                $this->attendanceNotes[$id] = $log->notes ?? '';
+            } else {
+                // Default new session marking to 'present' or 'absent'
+                $this->attendanceStatuses[$id] = 'present';
+                $this->attendanceNotes[$id] = '';
+            }
         }
     }
 
-    public function toggleBeneficiary(int $id): void
+    public function canUserMark(): bool
     {
-        if (isset($this->attendanceStates[$id])) {
-            $this->attendanceStates[$id] = !$this->attendanceStates[$id];
-        } else {
-            $this->attendanceStates[$id] = true;
+        $user = auth()->user();
+        return (bool) ($user && ($user->isCoach() || $user->isProjectOfficer()));
+    }
+
+    public function setStatus(int $beneficiaryId, string $status): void
+    {
+        if (!$this->canUserMark()) {
+            Notification::make()
+                ->title('Permission Denied')
+                ->body('Register marking is restricted to Coaches and Project Officers. Administrators have read-only monitoring access.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        if (in_array($status, ['present', 'absent', 'late', 'apology'])) {
+            $this->attendanceStatuses[$beneficiaryId] = $status;
         }
     }
 
-    public function markAllPresent(): void
+    public function setStatusFilter(string $filter): void
     {
-        foreach ($this->attendanceStates as $id => $val) {
-            $this->attendanceStates[$id] = true;
-        }
+        $this->statusFilter = $filter;
     }
 
-    public function markAllAbsent(): void
+    public function markAll(string $status): void
     {
-        foreach ($this->attendanceStates as $id => $val) {
-            $this->attendanceStates[$id] = false;
+        if (!$this->canUserMark()) {
+            Notification::make()
+                ->title('Permission Denied')
+                ->body('Register marking is restricted to Coaches and Project Officers. Administrators have read-only monitoring access.')
+                ->warning()
+                ->send();
+            return;
         }
+
+        if (!in_array($status, ['present', 'absent', 'late', 'apology'])) {
+            return;
+        }
+
+        foreach ($this->attendanceStatuses as $id => $val) {
+            $this->attendanceStatuses[$id] = $status;
+        }
+
+        Notification::make()
+            ->title("Marked all as " . ucfirst($status))
+            ->success()
+            ->duration(2000)
+            ->send();
     }
 
     public function saveAttendance(): void
     {
+        if (!$this->canUserMark()) {
+            Notification::make()
+                ->title('Permission Denied')
+                ->body('Register marking is restricted to Coaches and Project Officers. Administrators have read-only monitoring access.')
+                ->warning()
+                ->send();
+            return;
+        }
+
         $user = auth()->user();
         $viewData = $this->getViewData();
         $beneficiaries = $viewData['beneficiaries']->keyBy('id');
@@ -144,61 +244,164 @@ class MarkAttendancePage extends Page
         $isFootball = $selectedProject && $selectedProject->programme_type === Project::PROGRAMME_FOOTBALL;
         $defaultActivity = $isFootball ? AttendanceLog::ACTIVITY_TRAINING : AttendanceLog::ACTIVITY_CLASS_SESSION;
 
-        $presentCount = 0;
-        $totalCount = count($this->attendanceStates);
+        $stats = [
+            'present' => 0,
+            'absent'  => 0,
+            'late'    => 0,
+            'apology' => 0,
+        ];
 
-        foreach ($this->attendanceStates as $beneficiaryId => $isPresent) {
+        foreach ($this->attendanceStatuses as $beneficiaryId => $status) {
             $beneficiary = $beneficiaries->get($beneficiaryId);
             if (!$beneficiary) continue;
 
             $projectId = $this->selectedProjectId ?: ($beneficiary->projects()->value('projects.id') ?? 1);
             $project = Project::find($projectId);
             $activity = $project?->programme_type === Project::PROGRAMME_FOOTBALL ? AttendanceLog::ACTIVITY_TRAINING : AttendanceLog::ACTIVITY_CLASS_SESSION;
+            $note = $this->attendanceNotes[$beneficiaryId] ?? null;
 
-            $existing = AttendanceLog::where('beneficiary_id', $beneficiaryId)
+            $log = AttendanceLog::where('beneficiary_id', $beneficiaryId)
+                ->where('project_id', $projectId)
                 ->whereDate('attended_at', $this->sessionDate)
                 ->first();
 
-            if ($isPresent) {
-                if ($existing) {
-                    $existing->update([
-                        'status'              => 'present',
-                        'recorded_by_user_id' => $user->id,
-                        'activity_type'       => $activity,
-                        'project_id'          => $projectId,
-                        'team_id'             => $beneficiary->team_id,
-                    ]);
-                } else {
-                    AttendanceLog::create([
-                        'beneficiary_id'      => $beneficiaryId,
-                        'project_id'          => $projectId,
-                        'team_id'             => $beneficiary->team_id,
-                        'recorded_by_user_id' => $user->id,
-                        'activity_type'       => $activity,
-                        'attended_at'         => $this->sessionDate,
-                        'status'              => 'present',
-                    ]);
-                }
-                $presentCount++;
+            if ($log) {
+                $log->update([
+                    'team_id'             => $beneficiary->team_id,
+                    'recorded_by_user_id' => $user->id,
+                    'activity_type'       => $activity,
+                    'status'              => $status,
+                    'notes'               => $note,
+                ]);
             } else {
-                if ($existing) {
-                    $existing->delete();
-                }
+                AttendanceLog::create([
+                    'beneficiary_id'      => $beneficiaryId,
+                    'project_id'          => $projectId,
+                    'attended_at'         => $this->sessionDate,
+                    'team_id'             => $beneficiary->team_id,
+                    'recorded_by_user_id' => $user->id,
+                    'activity_type'       => $activity,
+                    'status'              => $status,
+                    'notes'               => $note,
+                ]);
+            }
+
+            if (isset($stats[$status])) {
+                $stats[$status]++;
             }
         }
 
         Notification::make()
-            ->title("Attendance Saved: {$presentCount} / {$totalCount} Present")
-            ->body("Recorded for " . Carbon::parse($this->sessionDate)->format('l, F j, Y'))
+            ->title("Attendance Register Saved")
+            ->body("{$stats['present']} Present • {$stats['absent']} Absent • {$stats['late']} Late • {$stats['apology']} Apology/Excused for " . Carbon::parse($this->sessionDate)->format('M d, Y'))
             ->success()
             ->send();
     }
 
-    protected function getViewData(): array
+    public function exportPdf(): StreamedResponse
+    {
+        $viewData = $this->getViewData();
+        $beneficiaries = $viewData['beneficiaries'];
+        $project = $this->selectedProjectId ? Project::find($this->selectedProjectId) : Project::first();
+        $team = $this->selectedTeamId ? Team::find($this->selectedTeamId) : null;
+        $user = auth()->user();
+
+        $carbonDate = Carbon::parse($this->sessionDate);
+        $month = (int) $carbonDate->month;
+        $year  = (int) $carbonDate->year;
+
+        // Build 5-week monthly matrix data for Image 3 layout
+        $startOfMonth = $carbonDate->copy()->startOfMonth();
+        $endOfMonth   = $carbonDate->copy()->endOfMonth();
+
+        $weeksStructure = [];
+        $currentDate = $startOfMonth->copy();
+        $weekNum = 1;
+        $days = [];
+
+        while ($currentDate->lte($endOfMonth)) {
+            if ($currentDate->isWeekday()) {
+                $days[] = [
+                    'day_number' => $currentDate->day,
+                    'day_label'  => match ($currentDate->dayOfWeek) {
+                        Carbon::MONDAY    => 'M',
+                        Carbon::TUESDAY   => 'T',
+                        Carbon::WEDNESDAY => 'W',
+                        Carbon::THURSDAY  => 'TH',
+                        Carbon::FRIDAY    => 'F',
+                    },
+                    'full_date'  => $currentDate->toDateString(),
+                ];
+            }
+
+            if ($currentDate->dayOfWeek === Carbon::FRIDAY || $currentDate->copy()->addDay()->month !== $month) {
+                if (!empty($days)) {
+                    $weeksStructure[$weekNum] = $days;
+                    $weekNum++;
+                    $days = [];
+                }
+            }
+            $currentDate->addDay();
+        }
+
+        // Fetch logs for this month
+        $beneficiaryIds = $beneficiaries->pluck('id');
+        $attLogs = AttendanceLog::whereIn('beneficiary_id', $beneficiaryIds)
+            ->whereMonth('attended_at', $month)
+            ->whereYear('attended_at', $year)
+            ->get();
+
+        $matrix = [];
+        foreach ($attLogs as $log) {
+            $d = Carbon::parse($log->attended_at)->day;
+            $matrix[$log->beneficiary_id][$d] = $log->status;
+        }
+
+        $isFootball = $project && $project->programme_type === Project::PROGRAMME_FOOTBALL;
+        if ($isFootball) {
+            $coachUser = null;
+            if ($team && $team->coach) {
+                $coachUser = $team->coach;
+            } elseif ($user->isCoach()) {
+                $coachUser = $user;
+            } elseif ($firstTeamCoach = Team::where('project_id', $project->id)->whereNotNull('coach_id')->first()?->coach) {
+                $coachUser = $firstTeamCoach;
+            }
+            $instructorName = $coachUser ? $coachUser->name : 'Assigned Coach';
+        } else {
+            $officerUser = $user->isProjectOfficer() ? $user : User::where('role', User::ROLE_PROJECT_OFFICER)->first();
+            $instructorName = $officerUser ? $officerUser->name : $user->name;
+        }
+
+        $pdf = Pdf::loadView('pdf.attendance-register-sheet', [
+            'project'         => $project,
+            'team'            => $team,
+            'beneficiaries'   => $beneficiaries,
+            'weeksStructure'  => $weeksStructure,
+            'matrix'          => $matrix,
+            'month'           => $month,
+            'year'            => $year,
+            'monthName'       => $carbonDate->format('F Y'),
+            'instructorName'  => $instructorName,
+            'generatedAt'     => now()->format('d M Y, H:i'),
+            'docRef'          => 'PIF-REG-' . ($project ? strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $project->name), 0, 8)) : 'MAIN') . '-' . now()->format('Ymd'),
+        ])->setPaper('a4', 'landscape');
+
+        $filename = 'PIF-Attendance-Register-' . ($project ? str_replace(' ', '-', $project->name) : 'All') . '-' . $carbonDate->format('Y-m') . '.pdf';
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
+    public function getViewData(): array
     {
         $user      = auth()->user();
-        $isOfficer = $user?->isProjectOfficer();
-        $isCoach   = $user?->isCoach();
+        $isOfficer = (bool) $user?->isProjectOfficer();
+        $isCoach   = (bool) $user?->isCoach();
+        $canMark   = $this->canUserMark();
 
         $projectsQuery = Project::where('is_active', true);
         if ($this->scope === Project::PROGRAMME_EDUCATION) {
@@ -216,7 +419,7 @@ class MarkAttendancePage extends Page
             $teams = Team::where('project_id', $selectedProject->id)->orderBy('name')->get();
         }
 
-        $benefQuery = Beneficiary::where('is_active', true)->select(['id', 'name', 'team_id']);
+        $benefQuery = Beneficiary::where('is_active', true)->select(['id', 'name', 'team_id', 'shortcode']);
 
         if ($isCoach) {
             $coachTeam = Team::where('coach_id', $user->id)->first();
@@ -232,37 +435,95 @@ class MarkAttendancePage extends Page
         }
 
         if ($this->searchQuery) {
-            $benefQuery->where('name', 'like', '%' . $this->searchQuery . '%');
+            $benefQuery->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->searchQuery . '%')
+                  ->orWhere('shortcode', 'like', '%' . $this->searchQuery . '%');
+            });
         }
 
         $beneficiaries = $benefQuery->orderBy('name')->get();
 
-        // Activity banner text & icon
-        if ($isCoach || $isFootballProject) {
-            $activityTitle = 'Football Training Attendance';
-            $activityDescription = 'Record daily training session attendance for football players and squad members.';
-            $activityTag = 'Training Session';
-            $activityIcon = 'football';
-        } else {
-            $activityTitle = 'Literacy / Education Session Attendance';
-            $activityDescription = 'Record class & session attendance for literacy and educational modules.';
-            $activityTag = 'Class / Session';
-            $activityIcon = 'book';
+        // Calculate real-time KPI metrics
+        $registeredCount = $beneficiaries->count();
+        $presentCount = 0;
+        $absentCount = 0;
+        $lateCount = 0;
+        $apologyCount = 0;
+
+        foreach ($beneficiaries as $b) {
+            $status = $this->attendanceStatuses[$b->id] ?? 'present';
+            match ($status) {
+                'present' => $presentCount++,
+                'absent'  => $absentCount++,
+                'late'    => $lateCount++,
+                'apology' => $apologyCount++,
+                default   => null,
+            };
         }
+
+        $attendanceRate = $registeredCount > 0 ? round((($presentCount + $lateCount) / $registeredCount) * 100) : 0;
+
+        // Session Coach (Football) vs Instructor (Literacy)
+        if ($isFootballProject) {
+            $coachUser = null;
+            if ($isCoach) {
+                $coachUser = $user;
+            } elseif ($this->selectedTeamId) {
+                $t = $teams->firstWhere('id', $this->selectedTeamId);
+                $coachUser = $t?->coach;
+            } elseif ($firstTeamCoach = Team::where('project_id', $selectedProject?->id ?? 6)->whereNotNull('coach_id')->first()?->coach) {
+                $coachUser = $firstTeamCoach;
+            }
+            $instructorTitle = 'Coach';
+            $instructorName = $coachUser ? $coachUser->name : ($user->isCoach() ? $user->name : 'Assigned Coach');
+        } else {
+            $officerUser = $isOfficer ? $user : User::where('role', User::ROLE_PROJECT_OFFICER)->first();
+            $instructorTitle = 'Instructor';
+            $instructorName = $officerUser ? $officerUser->name : $user->name;
+        }
+
+        // Active Session Badge codes & Group labels (Team for Football, Class for Literacy)
+        $courseCode = $selectedProject ? strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $selectedProject->name), 0, 7)) . '-PIF' : 'PIF-PROG';
+        $groupType = $isFootballProject ? 'Team' : 'Class';
+
+        if ($isCoach) {
+            $groupName = $coachTeam?->name ?? 'Senior Squad';
+        } elseif ($this->selectedTeamId && $isFootballProject) {
+            $groupName = $teams->firstWhere('id', $this->selectedTeamId)?->name ?? 'All Teams';
+        } elseif ($selectedProject) {
+            $groupName = $selectedProject->name;
+        } else {
+            $groupName = $isFootballProject ? 'All Teams' : 'All Classes';
+        }
+
+        $groupBadge = "{$groupType}: {$groupName}";
+        $percentOfLabel = $isFootballProject ? 'of team' : 'of class';
 
         return [
             'projects'            => $projects,
             'teams'               => $teams,
             'beneficiaries'       => $beneficiaries,
+            'selectedProject'     => $selectedProject,
             'isProjectOfficer'    => $isOfficer,
             'isCoach'             => $isCoach,
+            'canMark'             => $canMark,
             'lockScope'           => $isOfficer || $isCoach,
             'lockProject'         => $isOfficer || $isCoach,
             'showTeamFilter'      => $isFootballProject && !$isCoach,
-            'activityTitle'       => $activityTitle,
-            'activityDescription' => $activityDescription,
-            'activityTag'         => $activityTag,
-            'activityIcon'        => $activityIcon,
+            'registeredCount'     => $registeredCount,
+            'presentCount'        => $presentCount,
+            'absentCount'         => $absentCount,
+            'lateCount'           => $lateCount,
+            'apologyCount'        => $apologyCount,
+            'attendanceRate'      => $attendanceRate,
+            'instructorTitle'     => $instructorTitle,
+            'instructorName'      => $instructorName,
+            'courseCode'          => $courseCode,
+            'groupType'           => $groupType,
+            'groupName'           => $groupName,
+            'groupBadge'          => $groupBadge,
+            'percentOfLabel'      => $percentOfLabel,
+            'isFootballProject'   => $isFootballProject,
         ];
     }
 }

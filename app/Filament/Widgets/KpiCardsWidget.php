@@ -62,7 +62,7 @@ class KpiCardsWidget extends BaseWidget
                 'activeProjects'     => ($isOfficer || $isCoach) ? null : Project::where('is_active', true)->count(),
                 'totalBeneficiaries' => (clone $benefBase)->count(),
                 'mealsToday'         => (clone $mealsBase)->whereBetween('served_at', [$todayStart, $todayEnd])->count(),
-                'attendanceToday'    => (clone $attendanceBase)->whereDate('attended_at', today())->where('status', 'present')->count(),
+                'attendanceToday'    => (clone $attendanceBase)->whereDate('attended_at', today())->whereIn('status', ['present', 'late'])->count(),
                 'mealsThisWeek'      => (clone $mealsBase)->whereBetween('served_at', [$weekStart, $weekEnd])->count(),
                 'mealsThisMonth'     => (clone $mealsBase)->whereBetween('served_at', [$monthStart, $monthEnd])->count(),
                 'turnoutRate'        => $this->calculateTurnoutRate($isOfficer ? $projectId : null, $isCoach ? $teamId : null),

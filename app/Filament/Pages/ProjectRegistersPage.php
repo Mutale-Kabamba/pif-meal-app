@@ -8,9 +8,11 @@ use App\Models\MealLog;
 use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProjectRegistersPage extends Page
 {
@@ -113,10 +115,25 @@ class ProjectRegistersPage extends Page
     public function updatedFilterMonth(): void { $this->buildSmartCalendarStructure(); }
     public function updatedFilterYear(): void  { $this->buildSmartCalendarStructure(); }
 
+    public function canUserMark(): bool
+    {
+        $user = auth()->user();
+        return (bool) ($user && ($user->isCoach() || $user->isProjectOfficer()));
+    }
+
     public function toggleAttendance(int $beneficiaryId, int $day): void
     {
         // Only allow toggling when on attendance register mode
         if ($this->registerType !== 'attendance') {
+            return;
+        }
+
+        if (!$this->canUserMark()) {
+            Notification::make()
+                ->title('Monitoring Mode')
+                ->body('Register marking is restricted to Coaches and Project Officers. Administrators have read-only monitoring access.')
+                ->info()
+                ->send();
             return;
         }
 
@@ -161,6 +178,73 @@ class ProjectRegistersPage extends Page
         }
     }
 
+    public function exportPdf(): StreamedResponse
+    {
+        $viewData = $this->getViewData();
+        $beneficiaries = $viewData['beneficiaries'];
+        $project = $this->selectedProjectId ? Project::find($this->selectedProjectId) : Project::first();
+        $team = $this->selectedTeamId ? Team::find($this->selectedTeamId) : null;
+        $user = auth()->user();
+
+        $carbonDate = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1);
+
+        $beneficiaryIds = $beneficiaries->pluck('id');
+        $attLogs = AttendanceLog::whereIn('beneficiary_id', $beneficiaryIds)
+            ->whereMonth('attended_at', $this->filterMonth)
+            ->whereYear('attended_at', $this->filterYear)
+            ->get();
+
+        $matrix = [];
+        foreach ($attLogs as $log) {
+            $d = Carbon::parse($log->attended_at)->day;
+            $matrix[$log->beneficiary_id][$d] = $log->status;
+        }
+
+        if ($team && !$project) {
+            $project = $team->project;
+        }
+
+        $isFootball = ($project && $project->programme_type === Project::PROGRAMME_FOOTBALL)
+            || ($team && $team->project?->programme_type === Project::PROGRAMME_FOOTBALL);
+
+        if ($isFootball) {
+            $coachUser = null;
+            if ($team && $team->coach) {
+                $coachUser = $team->coach;
+            } elseif ($user && $user->isCoach()) {
+                $coachUser = $user;
+            } elseif ($project && ($firstTeamCoach = Team::where('project_id', $project->id)->whereNotNull('coach_id')->first()?->coach)) {
+                $coachUser = $firstTeamCoach;
+            }
+            $instructorName = $coachUser ? (str_starts_with(strtolower($coachUser->name), 'coach') ? $coachUser->name : 'Coach ' . $coachUser->name) : 'Assigned Coach';
+        } else {
+            $officerUser = ($user && $user->isProjectOfficer()) ? $user : User::where('role', User::ROLE_PROJECT_OFFICER)->first();
+            $instructorName = $officerUser ? $officerUser->name : ($user?->name ?? 'Class Instructor');
+        }
+
+        $pdf = Pdf::loadView('pdf.attendance-register-sheet', [
+            'project'         => $project,
+            'team'            => $team,
+            'beneficiaries'   => $beneficiaries,
+            'weeksStructure'  => $this->weeksStructure,
+            'matrix'          => $matrix,
+            'month'           => $this->filterMonth,
+            'year'            => $this->filterYear,
+            'monthName'       => $carbonDate->format('F Y'),
+            'instructorName'  => $instructorName,
+            'generatedAt'     => now()->format('d M Y, H:i'),
+            'docRef'          => 'PIF-REG-' . ($project ? strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $project->name), 0, 8)) : 'MAIN') . '-' . now()->format('Ymd'),
+        ])->setPaper('a4', 'landscape');
+
+        $filename = 'PIF-Attendance-Register-' . ($project ? str_replace(' ', '-', $project->name) : 'All') . '-' . $carbonDate->format('Y-m') . '.pdf';
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
     protected function buildSmartCalendarStructure(): void
     {
         $startOfMonth = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1)->startOfMonth();
@@ -179,7 +263,7 @@ class ProjectRegistersPage extends Page
                         Carbon::MONDAY    => 'M',
                         Carbon::TUESDAY   => 'T',
                         Carbon::WEDNESDAY => 'W',
-                        Carbon::THURSDAY  => 'T',
+                        Carbon::THURSDAY  => 'TH',
                         Carbon::FRIDAY    => 'F',
                     },
                     'full_date' => $currentDate->toDateString(),
@@ -247,14 +331,12 @@ class ProjectRegistersPage extends Page
             $attLogs = AttendanceLog::whereIn('beneficiary_id', $beneficiaryIds)
                 ->whereMonth('attended_at', $this->filterMonth)
                 ->whereYear('attended_at', $this->filterYear)
-                ->where('status', 'present')
-                ->select(['beneficiary_id', 'attended_at'])
-                ->toBase()
+                ->select(['beneficiary_id', 'attended_at', 'status'])
                 ->get();
 
             foreach ($attLogs as $log) {
                 $day = Carbon::parse($log->attended_at)->day;
-                $attendanceMatrix[$log->beneficiary_id][$day] = true;
+                $attendanceMatrix[$log->beneficiary_id][$day] = $log->status;
             }
         }
 
@@ -312,6 +394,7 @@ class ProjectRegistersPage extends Page
             'selectedMonthShort' => $monthCarbon->format('M Y'),
             'isProjectOfficer'   => $isOfficer,
             'isCoach'            => $isCoach,
+            'canMark'            => $this->canUserMark(),
             'lockScope'          => $isOfficer || $isCoach,
             'lockProject'        => $isOfficer || $isCoach,
             'showTeamFilter'     => $isFootballProject && !$isCoach,

@@ -27,6 +27,32 @@ class AttendanceLog extends Model
     public const ACTIVITY_TRAINING = 'training';
     public const ACTIVITY_CLASS_SESSION = 'class_session';
 
+    public const STATUS_PRESENT = 'present';
+    public const STATUS_ABSENT = 'absent';
+    public const STATUS_LATE = 'late';
+    public const STATUS_APOLOGY = 'apology';
+
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_PRESENT => 'Present',
+            self::STATUS_ABSENT  => 'Absent',
+            self::STATUS_LATE    => 'Late',
+            self::STATUS_APOLOGY => 'Apology / Excused',
+        ];
+    }
+
+    public static function statusSymbol(string $status): string
+    {
+        return match ($status) {
+            self::STATUS_PRESENT => '✓',
+            self::STATUS_ABSENT  => '✗',
+            self::STATUS_LATE    => 'L',
+            self::STATUS_APOLOGY => 'E',
+            default              => '·',
+        };
+    }
+
     public function beneficiary()
     {
         return $this->belongsTo(Beneficiary::class);
