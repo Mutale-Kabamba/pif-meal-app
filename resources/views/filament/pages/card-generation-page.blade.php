@@ -82,32 +82,56 @@
     @endif
 
     @if($showPostGenerationModal)
-        <div class="fixed inset-0 bg-gray-950/60 backdrop-blur-lg flex items-center justify-center z-50 p-4 transition-all duration-300">
+        <div class="fixed inset-0 bg-gray-950/70 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300">
             <div class="bg-white dark:bg-gray-900 max-w-md w-full rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden transform scale-100">
-                <div class="p-6 text-center border-b border-gray-200 dark:border-gray-800">
-                    <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="p-6 text-center border-b border-gray-100 dark:border-gray-800">
+                    <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <h3 class="text-base font-bold text-gray-900 dark:text-white">Card Batch Sheet Compiled Successfully!</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">The compiled PDF document has been safely saved to your operational system folder repository.</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">The compiled PDF document has been safely saved to your operational system folder repository.</p>
                 </div>
                 
-                <div class="p-4 bg-gray-50 dark:bg-gray-950 flex flex-col gap-2">
-                    <a href="{{ $latestGeneratedFileUrl }}" target="_blank" wire:click="$set('showPostGenerationModal', false)" class="w-full inline-flex items-center justify-center py-2 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-blue-600 hover:bg-blue-700 transition-all text-center shadow-sm">
-                        Print / Stream PDF Sheets Now
+                <div class="p-4 bg-gray-50/80 dark:bg-gray-950 flex flex-col gap-2.5">
+                    <a href="{{ $latestGeneratedFileUrl }}" 
+                       target="_blank" 
+                       wire:click="$set('showPostGenerationModal', false)" 
+                       class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-150 text-center shadow-md hover:opacity-95 cursor-pointer no-underline"
+                       style="background-color: #2563eb !important; color: #ffffff !important; border: 1px solid #1d4ed8 !important; text-decoration: none !important;">
+                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #ffffff !important;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span style="color: #ffffff !important; font-weight: 700 !important;">Print / Stream PDF Sheets Now</span>
                     </a>
                     
-                    <a href="{{ $latestGeneratedFileDownloadUrl }}" wire:click="$set('showPostGenerationModal', false)" class="w-full inline-flex items-center justify-center py-2 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-emerald-500 hover:bg-emerald-600 transition-all text-center shadow-sm">
-                        Download File Globally Now
+                    <a href="{{ $latestGeneratedFileDownloadUrl }}" 
+                       wire:click="$set('showPostGenerationModal', false)" 
+                       class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-150 text-center shadow-md hover:opacity-95 cursor-pointer no-underline"
+                       style="background-color: #059669 !important; color: #ffffff !important; border: 1px solid #047857 !important; text-decoration: none !important;">
+                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #ffffff !important;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span style="color: #ffffff !important; font-weight: 700 !important;">Download File Globally Now</span>
                     </a>
                     
-                    <button wire:click="dismissModalAndGoToFolder" class="w-full inline-flex items-center justify-center py-2 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700/60 transition-all shadow-sm">
-                        Go To Folder History Directory
+                    <button wire:click="dismissModalAndGoToFolder" 
+                            type="button"
+                            class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-150 shadow-sm cursor-pointer"
+                            style="background-color: #ffffff !important; color: #1f2937 !important; border: 1px solid #d1d5db !important;">
+                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke: #374151 !important;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
+                        <span style="color: #1f2937 !important; font-weight: 700 !important;">Go To Folder History Directory</span>
                     </button>
                 </div>
 
-                <div class="p-3 text-center bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-                    <button wire:click="$set('showPostGenerationModal', false)" class="text-xs font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 uppercase tracking-widest">Dismiss Dialog</button>
+                <div class="p-3 text-center bg-gray-50/90 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+                    <button wire:click="$set('showPostGenerationModal', false)" 
+                            type="button"
+                            class="text-xs font-bold tracking-widest uppercase py-1 px-3 rounded hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors"
+                            style="color: #4b5563 !important;">
+                        Dismiss Dialog
+                    </button>
                 </div>
             </div>
         </div>
