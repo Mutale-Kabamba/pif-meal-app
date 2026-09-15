@@ -11,6 +11,7 @@ class KitchenEfficiencyChart extends ChartWidget
     protected static ?string $heading = 'Meals Served by Cook (Today)';
     protected static ?int $sort = 3;
     protected int|string|array $columnSpan = 1;
+    protected static ?string $pollingInterval = '15s';
 
     protected function getData(): array
     {

@@ -432,12 +432,34 @@
                     {{-- Student Identification --}}
                     <td class="td-student-details">
                         <div class="student-name">{{ $index + 1 }}. {{ $beneficiary->name }}</div>
+                        @php
+                            $subParts = [];
+                            if ($beneficiary->team) {
+                                $subParts[] = $beneficiary->team->name;
+                            }
+                            if ($beneficiary->relationLoaded('projects') && $beneficiary->projects->isNotEmpty()) {
+                                foreach ($beneficiary->projects as $p) {
+                                    if ($beneficiary->team && $p->programme_type === \App\Models\Project::PROGRAMME_FOOTBALL) {
+                                        continue;
+                                    }
+                                    if (!in_array($p->name, $subParts)) {
+                                        $subParts[] = $p->name;
+                                    }
+                                }
+                            } elseif (!$beneficiary->team) {
+                                $fallback = $team ? $team->name : ($project ? $project->name : 'PIF');
+                                if ($fallback && !in_array($fallback, $subParts)) {
+                                    $subParts[] = $fallback;
+                                }
+                            }
+                            $subParts[] = $beneficiary->shortcode ?: ('PIF-' . str_pad($beneficiary->id, 5, '0', STR_PAD_LEFT));
+                            if (!empty($beneficiary->phone_number)) {
+                                $subParts[] = $beneficiary->phone_number;
+                            }
+                            $subLine = implode(' | ', $subParts);
+                        @endphp
                         <div class="student-sub">
-                            @php
-                                $bTeam = $beneficiary->team ? $beneficiary->team->name : ($team ? $team->name : ($project ? $project->name : 'PIF'));
-                                $bCode = $beneficiary->shortcode ?: ('PIF-' . str_pad($beneficiary->id, 5, '0', STR_PAD_LEFT));
-                            @endphp
-                            {{ $isFootball ? 'Team' : 'Class' }}: {{ $bTeam }} | Code: {{ $bCode }}
+                            {{ $subLine }}
                         </div>
                     </td>
 
@@ -524,28 +546,45 @@
         </tbody>
     </table>
 
-    {{-- Footer Section (Image 3 style) --}}
+    {{-- Footer Section --}}
     <table class="footer-table">
         <tr>
             {{-- Left Box: Coach / Instructor Notes & Remarks --}}
-            <td style="width: 55%;">
-                <div class="footer-heading">{{ $personLabel }} NOTES &amp; ATTENDANCE REMARKS:</div>
+            <td style="width: 36%; padding-right: 6px;">
+                <div class="footer-heading">{{ $personLabel }} NOTES &amp; REMARKS:</div>
                 <div class="ruled-line"></div>
                 <div class="ruled-line"></div>
                 <div class="ruled-line"></div>
             </td>
 
-            {{-- Spacer --}}
-            <td style="width: 5%;"></td>
-
-            {{-- Right Box: Signatures & Official Attestation --}}
-            <td style="width: 40%;">
+            {{-- Right Box: 3 Signatures --}}
+            <td style="width: 64%;">
                 <div class="footer-heading">SIGNATURES &amp; OFFICIAL ATTESTATION:</div>
-                <div class="sig-line"></div>
-                <div class="sig-sub">{{ $isFootball ? 'COACH SIGNATURE • DATE' : 'CLASS INSTRUCTOR SIGNATURE • DATE' }}</div>
-                <div style="height: 5px;"></div>
-                <div class="sig-line"></div>
-                <div class="sig-sub">HEAD OF PROGRAMMES / QUALITY VERIFIER | DATE</div>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 1px;">
+                    <tr>
+                        <td style="width: 33%; padding-right: 4px; vertical-align: top;">
+                            <div class="sig-box">
+                                <strong style="font-size: 5.8px; color: #0f172a; text-transform: uppercase;">COOK / KITCHEN OPERATOR:</strong>
+                                <div class="sig-line" style="width: 95%; height: 12px;"></div>
+                                <div class="sig-sub">Sign &amp; Date (Cook In-Charge)</div>
+                            </div>
+                        </td>
+                        <td style="width: 33%; padding-right: 4px; vertical-align: top;">
+                            <div class="sig-box">
+                                <strong style="font-size: 5.8px; color: #0f172a; text-transform: uppercase;">PROJECT OFFICER / COACH:</strong>
+                                <div class="sig-line" style="width: 95%; height: 12px;"></div>
+                                <div class="sig-sub">Sign &amp; Date (Session Lead)</div>
+                            </div>
+                        </td>
+                        <td style="width: 34%; vertical-align: top;">
+                            <div class="sig-box">
+                                <strong style="font-size: 5.8px; color: #0f172a; text-transform: uppercase;">MEAL OFFICER:</strong>
+                                <div class="sig-line" style="width: 95%; height: 12px;"></div>
+                                <div class="sig-sub">Sign &amp; Date (Programme Audit)</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>

@@ -241,8 +241,7 @@ class MarkAttendancePage extends Page
         $viewData = $this->getViewData();
         $beneficiaries = $viewData['beneficiaries']->keyBy('id');
         $selectedProject = $this->selectedProjectId ? Project::find($this->selectedProjectId) : null;
-        $isFootball = $selectedProject && $selectedProject->programme_type === Project::PROGRAMME_FOOTBALL;
-        $defaultActivity = $isFootball ? AttendanceLog::ACTIVITY_TRAINING : AttendanceLog::ACTIVITY_CLASS_SESSION;
+        $dateStr = Carbon::parse($this->sessionDate)->format('Y-m-d');
 
         $stats = [
             'present' => 0,
@@ -255,18 +254,19 @@ class MarkAttendancePage extends Page
             $beneficiary = $beneficiaries->get($beneficiaryId);
             if (!$beneficiary) continue;
 
-            $projectId = $this->selectedProjectId ?: ($beneficiary->projects()->value('projects.id') ?? 1);
+            $projectId = $this->selectedProjectId 
+                ?: ($beneficiary->projects()->value('projects.id') ?? ($beneficiary->team?->project_id ?? 1));
             $project = Project::find($projectId);
             $activity = $project?->programme_type === Project::PROGRAMME_FOOTBALL ? AttendanceLog::ACTIVITY_TRAINING : AttendanceLog::ACTIVITY_CLASS_SESSION;
             $note = $this->attendanceNotes[$beneficiaryId] ?? null;
 
-            $log = AttendanceLog::where('beneficiary_id', $beneficiaryId)
+            $existingLog = AttendanceLog::where('beneficiary_id', $beneficiaryId)
                 ->where('project_id', $projectId)
-                ->whereDate('attended_at', $this->sessionDate)
+                ->whereDate('attended_at', $dateStr)
                 ->first();
 
-            if ($log) {
-                $log->update([
+            if ($existingLog) {
+                $existingLog->update([
                     'team_id'             => $beneficiary->team_id,
                     'recorded_by_user_id' => $user->id,
                     'activity_type'       => $activity,
@@ -277,7 +277,7 @@ class MarkAttendancePage extends Page
                 AttendanceLog::create([
                     'beneficiary_id'      => $beneficiaryId,
                     'project_id'          => $projectId,
-                    'attended_at'         => $this->sessionDate,
+                    'attended_at'         => $dateStr,
                     'team_id'             => $beneficiary->team_id,
                     'recorded_by_user_id' => $user->id,
                     'activity_type'       => $activity,
@@ -298,17 +298,55 @@ class MarkAttendancePage extends Page
             ->send();
     }
 
+    public function getPdfExportUrl(): string
+    {
+        $user = auth()->user();
+        $carbonDate = Carbon::parse($this->sessionDate);
+        $projectId = $this->selectedProjectId;
+        $teamId = $this->selectedTeamId;
+        $scope = $this->scope;
+
+        if ($user?->isCoach()) {
+            $coachTeam = Team::where('coach_id', $user->id)->first();
+            $projectId = $coachTeam ? (string) $coachTeam->project_id : $projectId;
+            $teamId    = $coachTeam ? (string) $coachTeam->id : $teamId;
+            $scope     = 'football';
+        } elseif ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            $projectId = (string) $user->assigned_project_id;
+        }
+
+        return route('registers.export.attendance', [
+            'month'      => (int) $carbonDate->month,
+            'year'       => (int) $carbonDate->year,
+            'project_id' => $projectId,
+            'team_id'    => $teamId,
+            'scope'      => $scope,
+        ]);
+    }
+
     public function exportPdf(): StreamedResponse
     {
-        $viewData = $this->getViewData();
-        $beneficiaries = $viewData['beneficiaries'];
-        $project = $this->selectedProjectId ? Project::find($this->selectedProjectId) : Project::first();
-        $team = $this->selectedTeamId ? Team::find($this->selectedTeamId) : null;
-        $user = auth()->user();
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
 
+        $user = auth()->user();
         $carbonDate = Carbon::parse($this->sessionDate);
         $month = (int) $carbonDate->month;
         $year  = (int) $carbonDate->year;
+
+        $projectId = $this->selectedProjectId;
+        $teamId    = $this->selectedTeamId;
+        $scope     = $this->scope;
+
+        // Role locks for export
+        if ($user?->isCoach()) {
+            $coachTeam = Team::where('coach_id', $user->id)->first();
+            $projectId = $coachTeam ? (string) $coachTeam->project_id : $projectId;
+            $teamId    = $coachTeam ? (string) $coachTeam->id : $teamId;
+            $scope     = 'football';
+        } elseif ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            $projectId = (string) $user->assigned_project_id;
+        }
 
         // Build 5-week monthly matrix data for Image 3 layout
         $startOfMonth = $carbonDate->copy()->startOfMonth();
@@ -419,7 +457,9 @@ class MarkAttendancePage extends Page
             $teams = Team::where('project_id', $selectedProject->id)->orderBy('name')->get();
         }
 
-        $benefQuery = Beneficiary::where('is_active', true)->select(['id', 'name', 'team_id', 'shortcode']);
+        $benefQuery = Beneficiary::where('is_active', true)
+            ->with(['team:id,name', 'projects:id,name,programme_type'])
+            ->select(['id', 'name', 'phone_number', 'team_id', 'shortcode']);
 
         if ($isCoach) {
             $coachTeam = Team::where('coach_id', $user->id)->first();
@@ -437,7 +477,8 @@ class MarkAttendancePage extends Page
         if ($this->searchQuery) {
             $benefQuery->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->searchQuery . '%')
-                  ->orWhere('shortcode', 'like', '%' . $this->searchQuery . '%');
+                  ->orWhere('shortcode', 'like', '%' . $this->searchQuery . '%')
+                  ->orWhere('phone_number', 'like', '%' . $this->searchQuery . '%');
             });
         }
 

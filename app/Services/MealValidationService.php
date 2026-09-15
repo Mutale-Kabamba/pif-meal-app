@@ -96,9 +96,13 @@ class MealValidationService
 
     public function recordMeal(Beneficiary $beneficiary, User $cook, string $mealType): MealLog
     {
+        $projectId = $cook->assigned_project_id 
+            ?? $beneficiary->projects()->value('projects.id') 
+            ?? $beneficiary->team?->project_id;
+
         return MealLog::create([
             'beneficiary_id'    => $beneficiary->id,
-            'project_id'        => $cook->assigned_project_id,
+            'project_id'        => $projectId,
             'served_by_user_id' => $cook->id,
             'meal_type'         => $mealType,
             'served_at'         => now(),
@@ -111,9 +115,13 @@ class MealValidationService
         string $mealType,
         string $reason
     ): AnomalyLog {
+        $projectId = $cook->assigned_project_id 
+            ?? $beneficiary->projects()->value('projects.id') 
+            ?? $beneficiary->team?->project_id;
+
         return AnomalyLog::create([
             'beneficiary_id'    => $beneficiary->id,
-            'project_id'        => $cook->assigned_project_id,
+            'project_id'        => $projectId,
             'served_by_user_id' => $cook->id,
             'meal_type'         => $mealType,
             'attempted_at'      => now(),

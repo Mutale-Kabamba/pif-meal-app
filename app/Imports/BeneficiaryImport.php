@@ -82,10 +82,13 @@ class BeneficiaryImport implements OnEachRow, WithHeadingRow, WithValidation, Sk
             return;
         }
 
+        $phone = trim($rowData['phone_number'] ?? ($rowData['phone'] ?? ''));
+
         $beneficiary = new Beneficiary([
-            'name'      => trim($rowData['name']),
-            'is_active' => filter_var($rowData['is_active'] ?? 1, FILTER_VALIDATE_BOOLEAN),
-            'team_id'   => $teamId,
+            'name'         => trim($rowData['name']),
+            'phone_number' => !empty($phone) ? $phone : null,
+            'is_active'    => filter_var($rowData['is_active'] ?? 1, FILTER_VALIDATE_BOOLEAN),
+            'team_id'      => $teamId,
         ]);
 
         $this->identityService->assignUniqueIdentity($beneficiary);

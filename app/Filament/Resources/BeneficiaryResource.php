@@ -99,6 +99,13 @@ class BeneficiaryResource extends Resource
                             ->required()
                             ->maxLength(255),
 
+                        Forms\Components\TextInput::make('phone_number')
+                            ->label('Phone Number')
+                            ->tel()
+                            ->maxLength(30)
+                            ->nullable()
+                            ->placeholder('e.g. +260 97 1234567'),
+
                         Forms\Components\TextInput::make('shortcode')
                             ->label('Unique Shortcode')
                             ->maxLength(5)
@@ -122,6 +129,12 @@ class BeneficiaryResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
+
+                Tables\Columns\TextColumn::make('phone_number')
+                    ->label('Phone Number')
+                    ->searchable()
+                    ->placeholder('—')
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('shortcode')
                     ->label('Shortcode')

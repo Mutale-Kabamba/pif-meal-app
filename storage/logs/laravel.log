@@ -3234,3 +3234,220 @@ Did you mean one of these?
 [stacktrace]
 #0 {main}
 "} 
+[2026-09-15 07:30:30] local.ERROR: PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 {"exception":"[object] (Psy\\Exception\\ParseErrorException(code: 0): PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 at C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/psy/psysh/src/Exception/ParseErrorException.php:44)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/psy/psysh/src/CodeCleaner.php(657): Psy/Exception/ParseErrorException::fromParseError(Object(PhpParser/Error))
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/psy/psysh/src/CodeCleaner.php(273): Psy/CodeCleaner->parse('<?php echo 'Use...', false)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/psy/psysh/src/Shell.php(1364): Psy/CodeCleaner->clean(Array, false)
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/psy/psysh/src/Shell.php(1471): Psy/Shell->appendCode('echo 'Users://n'...', true, false)
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/psy/psysh/src/Shell.php(2180): Psy/Shell->setCode('echo 'Users://n'...', true)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/tinker/src/Console/TinkerCommand.php(77): Psy/Shell->execute('echo 'Users://n'...')
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Laravel/Tinker/Console/TinkerCommand->handle()
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::{closure:Illuminate/Container/BoundMethod::call():35}()
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(95): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#9 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Array, Object(Closure))
+#10 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(696): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Array, Array, NULL)
+#11 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Console/Command.php(213): Illuminate/Container/Container->call(Array)
+#12 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/symfony/console/Command/Command.php(341): Illuminate/Console/Command->execute(Object(Symfony/Component/Console/Input/ArgvInput), Object(Illuminate/Console/OutputStyle))
+#13 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Console/Command.php(182): Symfony/Component/Console/Command/Command->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Illuminate/Console/OutputStyle))
+#14 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/symfony/console/Application.php(1117): Illuminate/Console/Command->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#15 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/symfony/console/Application.php(356): Symfony/Component/Console/Application->doRunCommand(Object(Laravel/Tinker/Console/TinkerCommand), Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#16 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/symfony/console/Application.php(195): Symfony/Component/Console/Application->doRun(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#17 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony/Component/Console/Application->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#18 C:/Users/mukuk/Documents/GitHub/pif-meal-app/artisan(18): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#19 {main}
+"} 
+[2026-09-15 07:41:55] local.ERROR: Undefined variable $generatedAt (View: C:\Users\mukuk\Documents\GitHub\pif-meal-app\resources\views\pdf\attendance-register-sheet.blade.php) {"exception":"[object] (Illuminate\\View\\ViewException(code: 0): Undefined variable $generatedAt (View: C:\\Users\\mukuk\\Documents\\GitHub\\pif-meal-app\\resources\\views\\pdf\\attendance-register-sheet.blade.php) at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php:332)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(58): Illuminate/View/Engines/CompilerEngine->handleViewException(Object(ErrorException), 0)
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(60): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->handleViewException(Object(ErrorException), 0)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(63): Illuminate/View/View->render()
+#9 {main}
+
+[previous exception] [object] (ErrorException(code: 0): Undefined variable $generatedAt at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php:332)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(258): Illuminate/Foundation/Bootstrap/HandleExceptions->handleError(2, 'Undefined varia...', 'C://Users//mukuk//...', 332)
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php(332): Illuminate/Foundation/Bootstrap/HandleExceptions->{closure:Illuminate/Foundation/Bootstrap/HandleExceptions::forwardsTo():257}(2, 'Undefined varia...', 'C://Users//mukuk//...', 332)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(123): require('C://Users//mukuk//...')
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(124): Illuminate/Filesystem/Filesystem::{closure:Illuminate/Filesystem/Filesystem::getRequire():120}()
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(58): Illuminate/Filesystem/Filesystem->getRequire('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#9 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#10 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#11 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(63): Illuminate/View/View->render()
+#12 {main}
+"} 
+[2026-09-15 07:42:08] local.ERROR: Undefined variable $instructorName (View: C:\Users\mukuk\Documents\GitHub\pif-meal-app\resources\views\pdf\attendance-register-sheet.blade.php) {"exception":"[object] (Illuminate\\View\\ViewException(code: 0): Undefined variable $instructorName (View: C:\\Users\\mukuk\\Documents\\GitHub\\pif-meal-app\\resources\\views\\pdf\\attendance-register-sheet.blade.php) at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php:357)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(58): Illuminate/View/Engines/CompilerEngine->handleViewException(Object(ErrorException), 0)
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(60): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->handleViewException(Object(ErrorException), 0)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(65): Illuminate/View/View->render()
+#9 {main}
+
+[previous exception] [object] (ErrorException(code: 0): Undefined variable $instructorName at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php:357)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(258): Illuminate/Foundation/Bootstrap/HandleExceptions->handleError(2, 'Undefined varia...', 'C://Users//mukuk//...', 357)
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php(357): Illuminate/Foundation/Bootstrap/HandleExceptions->{closure:Illuminate/Foundation/Bootstrap/HandleExceptions::forwardsTo():257}(2, 'Undefined varia...', 'C://Users//mukuk//...', 357)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(123): require('C://Users//mukuk//...')
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(124): Illuminate/Filesystem/Filesystem::{closure:Illuminate/Filesystem/Filesystem::getRequire():120}()
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(58): Illuminate/Filesystem/Filesystem->getRequire('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#9 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#10 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#11 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(65): Illuminate/View/View->render()
+#12 {main}
+"} 
+[2026-09-15 07:42:24] local.ERROR: Cannot access offset of type string on string (View: C:\Users\mukuk\Documents\GitHub\pif-meal-app\resources\views\pdf\attendance-register-sheet.blade.php) {"exception":"[object] (Illuminate\\View\\ViewException(code: 0): Cannot access offset of type string on string (View: C:\\Users\\mukuk\\Documents\\GitHub\\pif-meal-app\\resources\\views\\pdf\\attendance-register-sheet.blade.php) at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php:372)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(58): Illuminate/View/Engines/CompilerEngine->handleViewException(Object(TypeError), 0)
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(60): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->handleViewException(Object(TypeError), 0)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(77): Illuminate/View/View->render()
+#9 {main}
+
+[previous exception] [object] (TypeError(code: 0): Cannot access offset of type string on string at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php:372)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(123): require()
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(124): Illuminate/Filesystem/Filesystem::{closure:Illuminate/Filesystem/Filesystem::getRequire():120}()
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(58): Illuminate/Filesystem/Filesystem->getRequire('C://Users//mukuk//...', Array)
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#9 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(77): Illuminate/View/View->render()
+#10 {main}
+"} 
+[2026-09-15 07:42:35] local.ERROR: Undefined array key "day_label" (View: C:\Users\mukuk\Documents\GitHub\pif-meal-app\resources\views\pdf\attendance-register-sheet.blade.php) {"exception":"[object] (Illuminate\\View\\ViewException(code: 0): Undefined array key \"day_label\" (View: C:\\Users\\mukuk\\Documents\\GitHub\\pif-meal-app\\resources\\views\\pdf\\attendance-register-sheet.blade.php) at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php:416)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(58): Illuminate/View/Engines/CompilerEngine->handleViewException(Object(ErrorException), 0)
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(60): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->handleViewException(Object(ErrorException), 0)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(74): Illuminate/View/View->render()
+#9 {main}
+
+[previous exception] [object] (ErrorException(code: 0): Undefined array key \"day_label\" at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php:416)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(258): Illuminate/Foundation/Bootstrap/HandleExceptions->handleError(2, 'Undefined array...', 'C://Users//mukuk//...', 416)
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/46f4b15f62fc1453b1a049d259a0f7cc.php(416): Illuminate/Foundation/Bootstrap/HandleExceptions->{closure:Illuminate/Foundation/Bootstrap/HandleExceptions::forwardsTo():257}(2, 'Undefined array...', 'C://Users//mukuk//...', 416)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(123): require('C://Users//mukuk//...')
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(124): Illuminate/Filesystem/Filesystem::{closure:Illuminate/Filesystem/Filesystem::getRequire():120}()
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(58): Illuminate/Filesystem/Filesystem->getRequire('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#9 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#10 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#11 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(74): Illuminate/View/View->render()
+#12 {main}
+"} 
+[2026-09-15 07:42:47] local.ERROR: Undefined variable $cooksLabel (View: C:\Users\mukuk\Documents\GitHub\pif-meal-app\resources\views\pdf\meal-distribution-register-sheet.blade.php) {"exception":"[object] (Illuminate\\View\\ViewException(code: 0): Undefined variable $cooksLabel (View: C:\\Users\\mukuk\\Documents\\GitHub\\pif-meal-app\\resources\\views\\pdf\\meal-distribution-register-sheet.blade.php) at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/ed2bbf4d05a7ee67ae48838d66a2ef1b.php:302)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(58): Illuminate/View/Engines/CompilerEngine->handleViewException(Object(ErrorException), 0)
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(60): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->handleViewException(Object(ErrorException), 0)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(98): Illuminate/View/View->render()
+#9 {main}
+
+[previous exception] [object] (ErrorException(code: 0): Undefined variable $cooksLabel at C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/ed2bbf4d05a7ee67ae48838d66a2ef1b.php:302)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(258): Illuminate/Foundation/Bootstrap/HandleExceptions->handleError(2, 'Undefined varia...', 'C://Users//mukuk//...', 302)
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/storage/framework/views/ed2bbf4d05a7ee67ae48838d66a2ef1b.php(302): Illuminate/Foundation/Bootstrap/HandleExceptions->{closure:Illuminate/Foundation/Bootstrap/HandleExceptions::forwardsTo():257}(2, 'Undefined varia...', 'C://Users//mukuk//...', 302)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(123): require('C://Users//mukuk//...')
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(124): Illuminate/Filesystem/Filesystem::{closure:Illuminate/Filesystem/Filesystem::getRequire():120}()
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(58): Illuminate/Filesystem/Filesystem->getRequire('C://Users//mukuk//...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(22): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//mukuk//...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->evaluatePath('C://Users//mukuk//...', Array)
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php(10): Illuminate/View/Engines/CompilerEngine->get('C://Users//mukuk//...', Array)
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(209): Livewire/Mechanisms/ExtendBlade/ExtendedCompilerEngine->get('C://Users//mukuk//...', Array)
+#9 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#10 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#11 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(98): Illuminate/View/View->render()
+#12 {main}
+"} 
+[2026-09-15 07:43:17] local.ERROR: SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: beneficiaries.qr_token (Connection: sqlite, SQL: insert into "beneficiaries" ("name", "shortcode", "phone_number", "is_active", "updated_at", "created_at") values (Jane Phone Test, TESTPH540, +260955888999, 1, 2026-09-15 07:43:17, 2026-09-15 07:43:17)) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: beneficiaries.qr_token (Connection: sqlite, SQL: insert into \"beneficiaries\" (\"name\", \"shortcode\", \"phone_number\", \"is_active\", \"updated_at\", \"created_at\") values (Jane Phone Test, TESTPH540, +260955888999, 1, 2026-09-15 07:43:17, 2026-09-15 07:43:17)) at C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:825)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(779): Illuminate/Database/Connection->runQueryCallback('insert into \"be...', Array, Object(Closure))
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(560): Illuminate/Database/Connection->run('insert into \"be...', Array, Object(Closure))
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(524): Illuminate/Database/Connection->statement('insert into \"be...', Array)
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Query/Processors/Processor.php(32): Illuminate/Database/Connection->insert('insert into \"be...', Array)
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3766): Illuminate/Database/Query/Processors/Processor->processInsertGetId(Object(Illuminate/Database/Query/Builder), 'insert into \"be...', Array, 'id')
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(2120): Illuminate/Database/Query/Builder->insertGetId(Array, 'id')
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1359): Illuminate/Database/Eloquent/Builder->__call('insertGetId', Array)
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1324): Illuminate/Database/Eloquent/Model->insertAndSetId(Object(Illuminate/Database/Eloquent/Builder), Array)
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1163): Illuminate/Database/Eloquent/Model->performInsert(Object(Illuminate/Database/Eloquent/Builder))
+#9 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1128): Illuminate/Database/Eloquent/Model->save()
+#10 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Support/helpers.php(399): Illuminate/Database/Eloquent/Builder->{closure:Illuminate/Database/Eloquent/Builder::create():1127}(Object(App/Models/Beneficiary))
+#11 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1127): tap(Object(App/Models/Beneficiary), Object(Closure))
+#12 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Support/Traits/ForwardsCalls.php(23): Illuminate/Database/Eloquent/Builder->create(Array)
+#13 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(2372): Illuminate/Database/Eloquent/Model->forwardCallTo(Object(Illuminate/Database/Eloquent/Builder), 'create', Array)
+#14 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(2384): Illuminate/Database/Eloquent/Model->__call('create', Array)
+#15 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(104): Illuminate/Database/Eloquent/Model::__callStatic('create', Array)
+#16 {main}
+
+[previous exception] [object] (PDOException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: beneficiaries.qr_token at C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:571)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(571): PDOStatement->execute()
+#1 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(812): Illuminate/Database/Connection->{closure:Illuminate/Database/Connection::statement():560}('insert into \"be...', Array)
+#2 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(779): Illuminate/Database/Connection->runQueryCallback('insert into \"be...', Array, Object(Closure))
+#3 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(560): Illuminate/Database/Connection->run('insert into \"be...', Array, Object(Closure))
+#4 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(524): Illuminate/Database/Connection->statement('insert into \"be...', Array)
+#5 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Query/Processors/Processor.php(32): Illuminate/Database/Connection->insert('insert into \"be...', Array)
+#6 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3766): Illuminate/Database/Query/Processors/Processor->processInsertGetId(Object(Illuminate/Database/Query/Builder), 'insert into \"be...', Array, 'id')
+#7 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(2120): Illuminate/Database/Query/Builder->insertGetId(Array, 'id')
+#8 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1359): Illuminate/Database/Eloquent/Builder->__call('insertGetId', Array)
+#9 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1324): Illuminate/Database/Eloquent/Model->insertAndSetId(Object(Illuminate/Database/Eloquent/Builder), Array)
+#10 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1163): Illuminate/Database/Eloquent/Model->performInsert(Object(Illuminate/Database/Eloquent/Builder))
+#11 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1128): Illuminate/Database/Eloquent/Model->save()
+#12 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Support/helpers.php(399): Illuminate/Database/Eloquent/Builder->{closure:Illuminate/Database/Eloquent/Builder::create():1127}(Object(App/Models/Beneficiary))
+#13 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1127): tap(Object(App/Models/Beneficiary), Object(Closure))
+#14 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Support/Traits/ForwardsCalls.php(23): Illuminate/Database/Eloquent/Builder->create(Array)
+#15 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(2372): Illuminate/Database/Eloquent/Model->forwardCallTo(Object(Illuminate/Database/Eloquent/Builder), 'create', Array)
+#16 C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(2384): Illuminate/Database/Eloquent/Model->__call('create', Array)
+#17 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(104): Illuminate/Database/Eloquent/Model::__callStatic('create', Array)
+#18 {main}
+"} 
+[2026-09-15 07:43:32] local.ERROR: Method App\Filament\Pages\MarkAttendancePage::canMark does not exist. {"userId":1,"exception":"[object] (BadMethodCallException(code: 0): Method App\\Filament\\Pages\\MarkAttendancePage::canMark does not exist. at C:/Users/mukuk/Documents/GitHub/pif-meal-app/vendor/livewire/livewire/src/Component.php:138)
+[stacktrace]
+#0 C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php(161): Livewire/Component->__call('canMark', Array)
+#1 {main}
+"} 
+[2026-09-15 07:43:57] local.ERROR: Call to undefined method App\Http\Controllers\RegisterExportController::exportAttendanceRegister() {"userId":5,"exception":"[object] (Error(code: 0): Call to undefined method App\\Http\\Controllers\\RegisterExportController::exportAttendanceRegister() at C:/Users/mukuk/Documents/GitHub/pif-meal-app/verify_all.php:188)
+[stacktrace]
+#0 {main}
+"} 

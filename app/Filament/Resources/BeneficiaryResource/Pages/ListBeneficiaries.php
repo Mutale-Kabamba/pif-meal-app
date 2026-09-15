@@ -25,10 +25,10 @@ class ListBeneficiaries extends ListRecords
                 ->action(function () {
                     return response()->streamDownload(function () {
                         $out = fopen('php://output', 'w');
-                        fputcsv($out, ['name', 'team', 'education_project', 'is_active']);
-                        fputcsv($out, ['John Banda',  'U12 Lions', '',                 '1']);
-                        fputcsv($out, ['Mary Phiri',  '',          'Education Project', '1']);
-                        fputcsv($out, ['James Mwale', 'U12 Lions', 'Education Project', '1']);
+                        fputcsv($out, ['name', 'phone_number', 'team', 'education_project', 'is_active']);
+                        fputcsv($out, ['John Banda',  '+260971234567', 'U12 Lions', '',                 '1']);
+                        fputcsv($out, ['Mary Phiri',  '+260961234567', '',          'Education Project', '1']);
+                        fputcsv($out, ['James Mwale', '+260951234567', 'U12 Lions', 'Education Project', '1']);
                         fclose($out);
                     }, 'beneficiaries-import-template.csv', ['Content-Type' => 'text/csv']);
                 }),

@@ -342,8 +342,34 @@
                     <td style="font-weight: bold; background-color: #f8fafc; font-size: 6px;">{{ $rowNum }}</td>
                     <td class="td-student-details">
                         <div class="student-name">{{ $beneficiary->name }}</div>
+                        @php
+                            $subParts = [];
+                            if ($beneficiary->team) {
+                                $subParts[] = $beneficiary->team->name;
+                            }
+                            if ($beneficiary->relationLoaded('projects') && $beneficiary->projects->isNotEmpty()) {
+                                foreach ($beneficiary->projects as $p) {
+                                    if ($beneficiary->team && $p->programme_type === \App\Models\Project::PROGRAMME_FOOTBALL) {
+                                        continue;
+                                    }
+                                    if (!in_array($p->name, $subParts)) {
+                                        $subParts[] = $p->name;
+                                    }
+                                }
+                            } elseif (!$beneficiary->team) {
+                                $fallback = $team ? $team->name : ($project ? $project->name : 'Beneficiary');
+                                if ($fallback && !in_array($fallback, $subParts)) {
+                                    $subParts[] = $fallback;
+                                }
+                            }
+                            $subParts[] = $beneficiary->shortcode ?: ('PIF-' . str_pad($beneficiary->id, 5, '0', STR_PAD_LEFT));
+                            if (!empty($beneficiary->phone_number)) {
+                                $subParts[] = $beneficiary->phone_number;
+                            }
+                            $subLine = implode(' | ', $subParts);
+                        @endphp
                         <div class="student-sub">
-                            {{ $beneficiary->team ? $beneficiary->team->name : ($project ? $project->name : 'Beneficiary') }} | {{ $beneficiary->shortcode ?? ('PIF-' . $beneficiary->id) }}
+                            {{ $subLine }}
                         </div>
                     </td>
 
@@ -423,23 +449,23 @@
                     <tr>
                         <td style="width: 33%; padding-right: 4px;">
                             <div class="sig-box">
-                                <strong>KITCHEN COOK / OPERATOR:</strong>
+                                <strong>COOK / KITCHEN OPERATOR:</strong>
                                 <div class="sig-line"></div>
                                 <span>Sign &amp; Date (Cook In-Charge)</span>
                             </div>
                         </td>
                         <td style="width: 33%; padding-right: 4px;">
                             <div class="sig-box">
-                                <strong>PROJECT OFFICER / SUPERVISOR:</strong>
+                                <strong>PROJECT OFFICER / COACH:</strong>
                                 <div class="sig-line"></div>
                                 <span>Sign &amp; Date (Centre Supervisor)</span>
                             </div>
                         </td>
                         <td style="width: 34%;">
                             <div class="sig-box">
-                                <strong>HEAD OF PROGRAMMES / AUDIT:</strong>
+                                <strong>MEAL OFFICER:</strong>
                                 <div class="sig-line"></div>
-                                <span>Verification &amp; Filing</span>
+                                <span>Sign &amp; Date (Programme Audit)</span>
                             </div>
                         </td>
                     </tr>

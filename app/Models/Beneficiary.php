@@ -9,7 +9,7 @@ class Beneficiary extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'shortcode', 'qr_token', 'is_active', 'team_id'];
+    protected $fillable = ['name', 'phone_number', 'shortcode', 'qr_token', 'is_active', 'team_id'];
 
     protected $casts = [
         'is_active' => 'boolean',

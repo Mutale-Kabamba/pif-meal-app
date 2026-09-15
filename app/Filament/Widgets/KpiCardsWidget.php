@@ -15,6 +15,7 @@ class KpiCardsWidget extends BaseWidget
 {
     protected int|string|array $columnSpan = 'full';
     protected static ?int $sort = -2;
+    protected static ?string $pollingInterval = '15s';
 
     protected function getStats(): array
     {
@@ -24,50 +25,40 @@ class KpiCardsWidget extends BaseWidget
         $projectId = $user?->assigned_project_id;
         $teamId    = $isCoach ? Team::where('coach_id', $user->id)->value('id') : null;
 
-        if ($isCoach) {
-            $cacheKey = "nms_kpis_team_{$teamId}";
-        } elseif ($isOfficer) {
-            $cacheKey = "nms_kpis_project_{$projectId}";
-        } else {
-            $cacheKey = 'nms_dashboard_kpis';
+        $todayStart = today()->startOfDay();
+        $todayEnd   = today()->endOfDay();
+        $weekStart  = now()->startOfWeek();
+        $weekEnd    = now()->endOfWeek();
+        $monthStart = now()->startOfMonth();
+        $monthEnd   = now()->endOfMonth();
+
+        $mealsBase = MealLog::query();
+        $benefBase = Beneficiary::query();
+        $attendanceBase = \App\Models\AttendanceLog::query();
+
+        if ($isCoach && $teamId) {
+            // Scope to the coach's own team
+            $teamBenefIds = Beneficiary::where('team_id', $teamId)->pluck('id');
+            $benefBase->whereIn('id', $teamBenefIds);
+            $mealsBase->whereIn('beneficiary_id', $teamBenefIds);
+            $attendanceBase->whereIn('beneficiary_id', $teamBenefIds);
+        } elseif ($isOfficer && $projectId) {
+            // Scope by enrolled beneficiaries so dual-enrolled meals are counted
+            $projectBenefIds = Beneficiary::inProject($projectId)->pluck('id');
+            $benefBase->whereIn('id', $projectBenefIds);
+            $mealsBase->whereIn('beneficiary_id', $projectBenefIds);
+            $attendanceBase->whereIn('beneficiary_id', $projectBenefIds);
         }
 
-        $statsData = Cache::remember($cacheKey, 300, function () use ($isOfficer, $isCoach, $projectId, $teamId) {
-            $todayStart = today()->startOfDay();
-            $todayEnd   = today()->endOfDay();
-            $weekStart  = now()->startOfWeek();
-            $weekEnd    = now()->endOfWeek();
-            $monthStart = now()->startOfMonth();
-            $monthEnd   = now()->endOfMonth();
-
-            $mealsBase = MealLog::query();
-            $benefBase = Beneficiary::query();
-            $attendanceBase = \App\Models\AttendanceLog::query();
-
-            if ($isCoach && $teamId) {
-                // Scope to the coach's own team
-                $teamBenefIds = Beneficiary::where('team_id', $teamId)->pluck('id');
-                $benefBase->whereIn('id', $teamBenefIds);
-                $mealsBase->whereIn('beneficiary_id', $teamBenefIds);
-                $attendanceBase->whereIn('beneficiary_id', $teamBenefIds);
-            } elseif ($isOfficer && $projectId) {
-                // Scope by enrolled beneficiaries so dual-enrolled meals are counted
-                $projectBenefIds = Beneficiary::inProject($projectId)->pluck('id');
-                $benefBase->whereIn('id', $projectBenefIds);
-                $mealsBase->whereIn('beneficiary_id', $projectBenefIds);
-                $attendanceBase->whereIn('beneficiary_id', $projectBenefIds);
-            }
-
-            return [
-                'activeProjects'     => ($isOfficer || $isCoach) ? null : Project::where('is_active', true)->count(),
-                'totalBeneficiaries' => (clone $benefBase)->count(),
-                'mealsToday'         => (clone $mealsBase)->whereBetween('served_at', [$todayStart, $todayEnd])->count(),
-                'attendanceToday'    => (clone $attendanceBase)->whereDate('attended_at', today())->whereIn('status', ['present', 'late'])->count(),
-                'mealsThisWeek'      => (clone $mealsBase)->whereBetween('served_at', [$weekStart, $weekEnd])->count(),
-                'mealsThisMonth'     => (clone $mealsBase)->whereBetween('served_at', [$monthStart, $monthEnd])->count(),
-                'turnoutRate'        => $this->calculateTurnoutRate($isOfficer ? $projectId : null, $isCoach ? $teamId : null),
-            ];
-        });
+        $statsData = [
+            'activeProjects'     => ($isOfficer || $isCoach) ? null : Project::where('is_active', true)->count(),
+            'totalBeneficiaries' => (clone $benefBase)->count(),
+            'mealsToday'         => (clone $mealsBase)->whereBetween('served_at', [$todayStart, $todayEnd])->count(),
+            'attendanceToday'    => (clone $attendanceBase)->whereDate('attended_at', today())->whereIn('status', ['present', 'late'])->count(),
+            'mealsThisWeek'      => (clone $mealsBase)->whereBetween('served_at', [$weekStart, $weekEnd])->count(),
+            'mealsThisMonth'     => (clone $mealsBase)->whereBetween('served_at', [$monthStart, $monthEnd])->count(),
+            'turnoutRate'        => $this->calculateTurnoutRate($isOfficer ? $projectId : null, $isCoach ? $teamId : null),
+        ];
 
         $stats = [];
 

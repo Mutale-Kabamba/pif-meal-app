@@ -98,12 +98,48 @@ class MealDistributionRegisterPage extends Page
     public function updatedFilterMonth(): void { $this->buildSmartCalendarStructure(); }
     public function updatedFilterYear(): void  { $this->buildSmartCalendarStructure(); }
 
+    public function getPdfExportUrl(): string
+    {
+        $user = auth()->user();
+        $projectId = $this->selectedProjectId;
+        $teamId    = $this->selectedTeamId;
+        $scope     = $this->scope;
+
+        if ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            $projectId = (string) $user->assigned_project_id;
+        }
+
+        return route('registers.export.meals', [
+            'month'      => $this->filterMonth,
+            'year'       => $this->filterYear,
+            'project_id' => $projectId,
+            'team_id'    => $teamId,
+            'scope'      => $scope,
+        ]);
+    }
+
     public function exportPdf(): StreamedResponse
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
+        if (empty($this->weeksStructure)) {
+            $this->buildSmartCalendarStructure();
+        }
+
+        $user = auth()->user();
         $viewData = $this->getViewData();
         $beneficiaries = $viewData['beneficiaries'];
-        $project = $this->selectedProjectId ? Project::find($this->selectedProjectId) : Project::first();
-        $team = $this->selectedTeamId ? Team::find($this->selectedTeamId) : null;
+
+        $projectId = $this->selectedProjectId;
+        $teamId    = $this->selectedTeamId;
+
+        if ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            $projectId = (string) $user->assigned_project_id;
+        }
+
+        $project = $projectId ? Project::find($projectId) : Project::first();
+        $team = $teamId ? Team::find($teamId) : null;
 
         $carbonDate = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1);
         $beneficiaryIds = $beneficiaries->pluck('id');
@@ -214,8 +250,8 @@ class MealDistributionRegisterPage extends Page
 
         // -- Beneficiary scope -------------------------------------------------
         $benefQuery = Beneficiary::where('is_active', true)
-            ->with('team:id,name')
-            ->select(['id', 'name', 'team_id', 'shortcode']);
+            ->with(['team:id,name', 'projects:id,name,programme_type'])
+            ->select(['id', 'name', 'phone_number', 'team_id', 'shortcode']);
 
         if ($this->selectedTeamId) {
             $benefQuery->where('team_id', $this->selectedTeamId);

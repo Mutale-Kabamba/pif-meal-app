@@ -12,6 +12,7 @@ class ProjectComparisonChart extends ChartWidget
     protected static ?string $heading = 'Meals by Project This Month';
     protected static ?int $sort = 2;
     protected int|string|array $columnSpan = 1;
+    protected static ?string $pollingInterval = '15s';
 
     protected function getData(): array
     {

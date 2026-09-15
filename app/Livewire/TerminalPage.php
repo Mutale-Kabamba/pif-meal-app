@@ -79,6 +79,7 @@ class TerminalPage extends Component
         $beneficiary = Beneficiary::find($beneficiaryId);
         if (!$beneficiary) {
             $this->showAlert('error', 'Beneficiary not found.');
+            $this->dispatch('play-error-sound');
             return;
         }
 
@@ -87,6 +88,9 @@ class TerminalPage extends Component
         if ($result->success) {
             $this->showAlert('success', $result->message);
             $this->dispatch('play-success-sound');
+        } elseif ($result->status === 'duplicate') {
+            $this->showAlert('warning', $result->message . ' Proceed to scan the next person.');
+            $this->dispatch('play-warning-sound');
         } else {
             $this->showAlert('error', $result->message);
             $this->dispatch('play-error-sound');
@@ -108,8 +112,17 @@ class TerminalPage extends Component
             return;
         }
 
-        // Silently enforce 1-scan-per-day — no alert, no anomaly log
+        // Check if already received meal today
         if ($this->validationService->hasReceivedMealToday($beneficiary, 'standard_ration')) {
+            $existingLog = MealLog::where('beneficiary_id', $beneficiary->id)
+                ->where('meal_type', 'standard_ration')
+                ->whereDate('served_at', today())
+                ->first();
+
+            $time = $existingLog ? $existingLog->served_at->format('h:i A') : 'earlier today';
+
+            $this->showAlert('warning', "Already Scanned: {$beneficiary->name} ({$beneficiary->shortcode}) already received a meal today at {$time}. Proceed to scan next person.");
+            $this->dispatch('play-warning-sound');
             return;
         }
 
@@ -118,6 +131,9 @@ class TerminalPage extends Component
         if ($result->success) {
             $this->showAlert('success', $result->message);
             $this->dispatch('play-success-sound');
+        } elseif ($result->status === 'duplicate') {
+            $this->showAlert('warning', $result->message . ' Proceed to scan next person.');
+            $this->dispatch('play-warning-sound');
         } else {
             $this->showAlert('error', $result->message);
             $this->dispatch('play-error-sound');

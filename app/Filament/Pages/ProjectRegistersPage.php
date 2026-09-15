@@ -133,12 +133,19 @@ class ProjectRegistersPage extends Page
         }
 
         $user = auth()->user();
-        $date = Carbon::createFromDate($this->filterYear, $this->filterMonth, $day)->toDateString();
+        $date = Carbon::createFromDate($this->filterYear, $this->filterMonth, $day)->format('Y-m-d');
         $beneficiary = Beneficiary::find($beneficiaryId);
         if (!$beneficiary) return;
 
+        $projectId = $this->selectedProjectId ?: ($beneficiary->projects()->value('projects.id') ?? ($beneficiary->team?->project_id ?? 1));
+        $project = Project::find($projectId);
+        $activity = $project?->programme_type === Project::PROGRAMME_FOOTBALL 
+            ? AttendanceLog::ACTIVITY_TRAINING 
+            : AttendanceLog::ACTIVITY_CLASS_SESSION;
+
         $existing = AttendanceLog::where('beneficiary_id', $beneficiaryId)
-            ->whereDate('attended_at', $date)
+            ->where('project_id', $projectId)
+            ->where('attended_at', $date)
             ->first();
 
         if ($existing) {
@@ -149,21 +156,19 @@ class ProjectRegistersPage extends Page
                 ->duration(2000)
                 ->send();
         } else {
-            $projectId = $this->selectedProjectId ?: ($beneficiary->projects()->value('projects.id') ?? 1);
-            $project = Project::find($projectId);
-            $activity = $project?->programme_type === Project::PROGRAMME_FOOTBALL 
-                ? AttendanceLog::ACTIVITY_TRAINING 
-                : AttendanceLog::ACTIVITY_CLASS_SESSION;
-
-            AttendanceLog::create([
-                'beneficiary_id'      => $beneficiaryId,
-                'project_id'          => $projectId,
-                'team_id'             => $beneficiary->team_id,
-                'recorded_by_user_id' => $user->id,
-                'activity_type'       => $activity,
-                'attended_at'         => $date,
-                'status'              => 'present',
-            ]);
+            AttendanceLog::updateOrCreate(
+                [
+                    'beneficiary_id' => $beneficiaryId,
+                    'project_id'     => $projectId,
+                    'attended_at'    => $date,
+                ],
+                [
+                    'team_id'             => $beneficiary->team_id,
+                    'recorded_by_user_id' => $user->id,
+                    'activity_type'       => $activity,
+                    'status'              => 'present',
+                ]
+            );
 
             Notification::make()
                 ->title("Marked present: {$beneficiary->name} on " . Carbon::parse($date)->format('M j'))
@@ -173,13 +178,59 @@ class ProjectRegistersPage extends Page
         }
     }
 
+    public function getPdfExportUrl(): string
+    {
+        $user = auth()->user();
+        $projectId = $this->selectedProjectId;
+        $teamId    = $this->selectedTeamId;
+        $scope     = $this->scope;
+
+        if ($user?->isCoach()) {
+            $coachTeam = Team::where('coach_id', $user->id)->first();
+            $projectId = $coachTeam ? (string) $coachTeam->project_id : $projectId;
+            $teamId    = $coachTeam ? (string) $coachTeam->id : $teamId;
+            $scope     = 'football';
+        } elseif ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            $projectId = (string) $user->assigned_project_id;
+        }
+
+        return route('registers.export.attendance', [
+            'month'      => $this->filterMonth,
+            'year'       => $this->filterYear,
+            'project_id' => $projectId,
+            'team_id'    => $teamId,
+            'scope'      => $scope,
+        ]);
+    }
+
     public function exportPdf(): StreamedResponse
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
+        if (empty($this->weeksStructure)) {
+            $this->buildSmartCalendarStructure();
+        }
+
+        $user = auth()->user();
         $viewData = $this->getViewData();
         $beneficiaries = $viewData['beneficiaries'];
-        $project = $this->selectedProjectId ? Project::find($this->selectedProjectId) : Project::first();
-        $team = $this->selectedTeamId ? Team::find($this->selectedTeamId) : null;
-        $user = auth()->user();
+
+        $projectId = $this->selectedProjectId;
+        $teamId    = $this->selectedTeamId;
+        $scope     = $this->scope;
+
+        if ($user?->isCoach()) {
+            $coachTeam = Team::where('coach_id', $user->id)->first();
+            $projectId = $coachTeam ? (string) $coachTeam->project_id : $projectId;
+            $teamId    = $coachTeam ? (string) $coachTeam->id : $teamId;
+            $scope     = 'football';
+        } elseif ($user?->isProjectOfficer() && $user->assigned_project_id) {
+            $projectId = (string) $user->assigned_project_id;
+        }
+
+        $project = $projectId ? Project::find($projectId) : Project::first();
+        $team = $teamId ? Team::find($teamId) : null;
 
         $carbonDate = Carbon::createFromDate($this->filterYear, $this->filterMonth, 1);
 
@@ -303,8 +354,8 @@ class ProjectRegistersPage extends Page
 
         // -- Beneficiary scope -------------------------------------------------
         $benefQuery = Beneficiary::where('is_active', true)
-            ->with('team:id,name')
-            ->select(['id', 'name', 'team_id', 'shortcode']);
+            ->with(['team:id,name', 'projects:id,name,programme_type'])
+            ->select(['id', 'name', 'phone_number', 'team_id', 'shortcode']);
 
         if ($isCoach) {
             $coachTeam = Team::where('coach_id', $user->id)->first();

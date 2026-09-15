@@ -30,14 +30,14 @@
                 @endif
 
                 {{-- Export Register PDF --}}
-                <button type="button" 
-                        wire:click="exportPdf" 
-                        style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.65rem; background: #ffffff; color: #e11d48; border: 1.5px solid #e11d48; cursor: pointer;" class="dark:!bg-gray-900">
+                <a href="{{ $this->getPdfExportUrl() }}" 
+                   target="_blank"
+                   style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.65rem; background: #ffffff; color: #e11d48; border: 1.5px solid #e11d48; text-decoration: none; cursor: pointer;" class="dark:!bg-gray-900">
                     <svg style="width: 0.95rem; height: 0.95rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                     <span>Export Register PDF</span>
-                </button>
+                </a>
             </div>
         </div>
 
@@ -188,10 +188,28 @@
                                 <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" class="hover:!bg-gray-50/80 dark:hover:!bg-gray-800/40 dark:!border-gray-800">
                                     <td style="padding: 0.45rem 0.75rem; font-weight: 600; position: sticky; left: 0; background: #ffffff; z-index: 10; border-right: 1px solid #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 260px; max-width: 260px; color: #111827;" class="dark:!bg-gray-900 dark:!border-gray-700 dark:!text-white" title="{{ $beneficiary->name }}">
                                         <div style="font-weight: 700; color: #0f172a; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" class="dark:!text-white">{{ $beneficiary->name }}</div>
-                                        <div style="font-size: 0.65rem; color: #64748b; margin-top: 1px; display: flex; align-items: center; gap: 0.35rem;">
-                                            <span style="font-weight: 600; color: #0f766e;">{{ $beneficiary->team?->name ?? 'Literacy Class' }}</span>
-                                            <span style="color: #cbd5e1;">&bull;</span>
-                                            <span style="font-family: monospace; color: #475569;">{{ $beneficiary->shortcode ?? 'PIF-'.$beneficiary->id }}</span>
+                                        <div style="font-size: 0.65rem; color: #64748b; margin-top: 1px; display: flex; align-items: center; gap: 0.35rem; flex-wrap: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            @php
+                                                $pParts = [];
+                                                if ($beneficiary->team) {
+                                                    $pParts[] = '<span style="font-weight: 700; color: #0f766e;">' . e($beneficiary->team->name) . '</span>';
+                                                }
+                                                if ($beneficiary->relationLoaded('projects') && $beneficiary->projects->isNotEmpty()) {
+                                                    foreach ($beneficiary->projects as $p) {
+                                                        if ($beneficiary->team && $p->programme_type === \App\Models\Project::PROGRAMME_FOOTBALL) {
+                                                            continue;
+                                                        }
+                                                        $pParts[] = '<span style="font-weight: 600; color: #2563eb;">' . e($p->name) . '</span>';
+                                                    }
+                                                } elseif (!$beneficiary->team) {
+                                                    $pParts[] = '<span style="font-weight: 600; color: #0f766e;">Literacy</span>';
+                                                }
+                                                $pParts[] = '<span style="font-family: monospace; color: #475569;">' . e($beneficiary->shortcode ?? ('PIF-' . $beneficiary->id)) . '</span>';
+                                                if (!empty($beneficiary->phone_number)) {
+                                                    $pParts[] = '<span style="color: #0369a1; font-weight: 600;">' . e($beneficiary->phone_number) . '</span>';
+                                                }
+                                            @endphp
+                                            {!! implode(' <span style="color: #cbd5e1;">&bull;</span> ', $pParts) !!}
                                         </div>
                                     </td>
                                     
@@ -241,9 +259,9 @@
                     </div>
 
                     <div>
-                        <button type="button" wire:click="exportPdf" style="font-weight: 700; color: #e11d48; background: none; border: none; cursor: pointer;">
+                        <a href="{{ $this->getPdfExportUrl() }}" target="_blank" style="font-weight: 700; color: #e11d48; text-decoration: none; cursor: pointer;">
                             Export Official Attendance PDF &rarr;
-                        </button>
+                        </a>
                     </div>
                 </div>
             @endif

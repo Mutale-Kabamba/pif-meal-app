@@ -43,6 +43,10 @@ Route::middleware(['auth'])->group(function () {
 
         return Storage::download($filePath);
     })->name('pdf.direct-download');
+
+    // Direct Register PDF Export Endpoints
+    Route::get('/admin/registers/export-attendance', [\App\Http\Controllers\RegisterExportController::class, 'exportAttendance'])->name('registers.export.attendance');
+    Route::get('/admin/registers/export-meals', [\App\Http\Controllers\RegisterExportController::class, 'exportMeals'])->name('registers.export.meals');
 });
 
 // Redirect based on role

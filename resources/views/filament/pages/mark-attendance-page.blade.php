@@ -42,14 +42,14 @@
                 </button>
 
                 {{-- Export Register PDF (matching Image 2 top right) --}}
-                <button type="button" 
-                        wire:click="exportPdf" 
-                        style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.65rem; background-color: #ffffff; color: #e11d48; border: 1px solid #e11d48; cursor: pointer; transition: all 0.15s;" class="dark:!bg-gray-900">
+                <a href="{{ $this->getPdfExportUrl() }}" 
+                   target="_blank"
+                   style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.65rem; background-color: #ffffff; color: #e11d48; border: 1px solid #e11d48; text-decoration: none; cursor: pointer; transition: all 0.15s;" class="dark:!bg-gray-900">
                     <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                     <span>Export Register PDF</span>
-                </button>
+                </a>
             </div>
         </div>
 
@@ -260,7 +260,7 @@
                 </svg>
                 <input type="text" 
                        wire:model.live.debounce.250ms="searchQuery" 
-                       placeholder="Search student by name or email..." 
+                       placeholder="Search student by name, code, or phone..." 
                        style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; font-size: 0.75rem; border-radius: 0.5rem; border: 1px solid #d1d5db; background: #ffffff; color: #111827;" class="dark:!bg-gray-800 dark:!border-gray-700 dark:!text-white" />
             </div>
 
@@ -377,10 +377,29 @@
                                                 </div>
                                                 <div style="font-size: 0.7rem; color: #64748b;" class="dark:!text-gray-400">
                                                     @php
-                                                        $rowTeam = $beneficiary->team ? $beneficiary->team->name : ($team ? $team->name : ($selectedProject ? $selectedProject->name : 'PIF'));
-                                                        $rowCode = $beneficiary->shortcode ?: ('PIF-' . str_pad($beneficiary->id, 5, '0', STR_PAD_LEFT));
+                                                        $uiParts = [];
+                                                        if ($beneficiary->team) {
+                                                            $uiParts[] = '<span style="font-weight: 700; color: #0f766e;">' . e($beneficiary->team->name) . '</span>';
+                                                        }
+                                                        if ($beneficiary->relationLoaded('projects') && $beneficiary->projects->isNotEmpty()) {
+                                                            foreach ($beneficiary->projects as $p) {
+                                                                if ($beneficiary->team && $p->programme_type === \App\Models\Project::PROGRAMME_FOOTBALL) {
+                                                                    continue;
+                                                                }
+                                                                $uiParts[] = '<span style="font-weight: 600; color: #2563eb;">' . e($p->name) . '</span>';
+                                                            }
+                                                        } elseif (!$beneficiary->team) {
+                                                            $fallback = $team ? $team->name : ($selectedProject ? $selectedProject->name : 'PIF');
+                                                            if ($fallback) {
+                                                                $uiParts[] = '<span style="font-weight: 600; color: #0f766e;">' . e($fallback) . '</span>';
+                                                            }
+                                                        }
+                                                        $uiParts[] = '<span style="font-family: monospace;">' . e($beneficiary->shortcode ?: ('PIF-' . $beneficiary->id)) . '</span>';
+                                                        if (!empty($beneficiary->phone_number)) {
+                                                            $uiParts[] = '<span style="color: #0369a1; font-weight: 600;">' . e($beneficiary->phone_number) . '</span>';
+                                                        }
                                                     @endphp
-                                                    {{ $isFootballProject ? 'Team' : 'Class' }}: {{ $rowTeam }} &bull; Code: {{ $rowCode }}
+                                                    {!! implode(' &bull; ', $uiParts) !!}
                                                 </div>
                                             </div>
                                         </div>
@@ -474,9 +493,9 @@
         @else
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; background: #f8fafc; border-radius: 0.75rem; border: 1px solid #e2e8f0; font-size: 0.75rem; color: #64748b;" class="dark:!bg-gray-800 dark:!border-gray-700 dark:!text-gray-300">
                 <span><strong>Administrator Monitoring View:</strong> Attendance registers are marked by assigned coaches &amp; project officers. You can monitor sessions and export official sheets.</span>
-                <button type="button" wire:click="exportPdf" style="font-weight: 700; color: #e11d48; text-decoration: underline; background: none; border: none; cursor: pointer;">
+                <a href="{{ $this->getPdfExportUrl() }}" target="_blank" style="font-weight: 700; color: #e11d48; text-decoration: underline; cursor: pointer;">
                     Download Official Register PDF &rarr;
-                </button>
+                </a>
             </div>
         @endif
     </div>

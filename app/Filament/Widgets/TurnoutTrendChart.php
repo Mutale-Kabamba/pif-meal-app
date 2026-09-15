@@ -14,6 +14,7 @@ class TurnoutTrendChart extends ChartWidget
     protected static ?string $heading = 'Daily Feeding Trend (Last 30 Days)';
     protected static ?int $sort = 1;
     protected int|string|array $columnSpan = 'full';
+    protected static ?string $pollingInterval = '15s';
 
     protected function getData(): array
     {

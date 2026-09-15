@@ -20,14 +20,18 @@
     <!-- Alert Zone -->
     <div class="px-4 pt-3">
         @if ($alert)
-            <div class="alert-enter rounded-xl p-4 text-center {{ $alert['type'] === 'success' ? 'bg-emerald-100 border-2 border-emerald-500 text-emerald-800' : 'bg-red-100 border-2 border-red-500 text-red-800' }}">
+            <div class="alert-enter rounded-xl p-4 text-center {{ $alert['type'] === 'success' ? 'bg-emerald-100 border-2 border-emerald-500 text-emerald-800' : ($alert['type'] === 'warning' ? 'bg-amber-100 border-2 border-amber-500 text-amber-900 shadow-sm' : 'bg-red-100 border-2 border-red-500 text-red-800') }}">
                 <div class="flex items-center justify-center gap-2">
                     @if ($alert['type'] === 'success')
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                         </svg>
+                    @elseif ($alert['type'] === 'warning')
+                        <svg class="w-6 h-6 text-amber-600 flex-shrink-0 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
                     @else
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 8a4 4 0 100 8 4 4 0 000-8z"/>
                         </svg>
                     @endif
@@ -135,6 +139,9 @@
     <audio id="success-sound" preload="auto">
         <source src="{{ asset('sounds/success.mp3') }}" type="audio/mpeg">
     </audio>
+    <audio id="warning-sound" preload="auto">
+        <source src="{{ asset('sounds/warning.mp3') }}" type="audio/mpeg">
+    </audio>
     <audio id="error-sound" preload="auto">
         <source src="{{ asset('sounds/error.mp3') }}" type="audio/mpeg">
     </audio>
@@ -151,6 +158,7 @@
                 initScanner() {
                     if (typeof Livewire !== 'undefined') {
                         Livewire.on('play-success-sound', () => this.playSound('success'));
+                        Livewire.on('play-warning-sound', () => this.playSound('warning'));
                         Livewire.on('play-error-sound', () => this.playSound('error'));
                     }
                     // Pre-populate blocklist with cards already served today
@@ -176,16 +184,15 @@
 
                 onScanSuccess(decodedText) {
                     if (this.processingLock) return;
-                    if (this.scannedTokens.has(decodedText)) return; // already done this session
 
                     this.processingLock = true;
-                    this.scannedTokens.add(decodedText); // block for the rest of the session
+                    this.scannedTokens.add(decodedText); // track in session
 
-                    // Camera stays on — just forward to Livewire
+                    // Forward to Livewire for validation & alert response
                     @this.processQrToken(decodedText);
 
-                    // 3-second countdown, then release lock
-                    this.countdown = 3;
+                    // 2-second countdown, then release lock
+                    this.countdown = 2;
                     const tick = setInterval(() => {
                         this.countdown--;
                         if (this.countdown <= 0) {
@@ -196,11 +203,59 @@
                 },
 
                 playSound(type) {
+                    // Try audio element first
                     const audio = document.getElementById(type + '-sound');
                     if (audio) {
                         audio.currentTime = 0;
                         audio.play().catch(() => {});
                     }
+
+                    // Also generate Web Audio synth tone for guaranteed audio feedback
+                    try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (AudioCtx) {
+                            const ctx = new AudioCtx();
+                            if (type === 'success') {
+                                // Ascending cheerful chime
+                                const osc = ctx.createOscillator();
+                                const gain = ctx.createGain();
+                                osc.type = 'sine';
+                                osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                                osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.15);
+                                gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                                osc.connect(gain);
+                                gain.connect(ctx.destination);
+                                osc.start();
+                                osc.stop(ctx.currentTime + 0.3);
+                            } else if (type === 'warning') {
+                                // Double tone alert chime (Already scanned prompt)
+                                const osc = ctx.createOscillator();
+                                const gain = ctx.createGain();
+                                osc.type = 'triangle';
+                                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                                osc.frequency.setValueAtTime(440.00, ctx.currentTime + 0.12);
+                                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                                osc.connect(gain);
+                                gain.connect(ctx.destination);
+                                osc.start();
+                                osc.stop(ctx.currentTime + 0.4);
+                            } else {
+                                // Buzz tone for errors
+                                const osc = ctx.createOscillator();
+                                const gain = ctx.createGain();
+                                osc.type = 'sawtooth';
+                                osc.frequency.setValueAtTime(220, ctx.currentTime);
+                                gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                                osc.connect(gain);
+                                gain.connect(ctx.destination);
+                                osc.start();
+                                osc.stop(ctx.currentTime + 0.3);
+                            }
+                        }
+                    } catch(e) {}
                 }
             }
         }
