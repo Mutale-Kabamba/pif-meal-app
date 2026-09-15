@@ -5,7 +5,7 @@ namespace App\Filament\Pages;
 use App\Filament\Widgets\KpiCardsWidget;
 use App\Filament\Widgets\TurnoutTrendChart;
 use App\Filament\Widgets\ProjectComparisonChart;
-use App\Filament\Widgets\KitchenEfficiencyChart;
+use App\Filament\Widgets\AttendanceVsMealsChart;
 use App\Filament\Widgets\AnomalyTrackerWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
 
@@ -21,7 +21,7 @@ class Dashboard extends BaseDashboard
             KpiCardsWidget::class,
             TurnoutTrendChart::class,
             ProjectComparisonChart::class,
-            KitchenEfficiencyChart::class,
+            AttendanceVsMealsChart::class,
             AnomalyTrackerWidget::class, // Sitting safely at the very bottom
         ];
     }
