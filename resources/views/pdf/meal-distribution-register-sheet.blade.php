@@ -181,17 +181,21 @@
             max-width: 24px;
             color: #059669;
             font-weight: bold;
-            font-size: 7px;
+            font-size: 11px;
+            line-height: 1;
+            vertical-align: middle;
             background-color: #f0fdf4;
-            padding: 1px 0;
+            padding: 0;
         }
         .cell-unserved {
             width: 18px;
             max-width: 24px;
             color: #cbd5e1;
-            font-size: 6.5px;
+            font-size: 8px;
+            line-height: 1;
+            vertical-align: middle;
             background-color: #ffffff;
-            padding: 1px 0;
+            padding: 0;
         }
         .td-total {
             font-weight: bold;

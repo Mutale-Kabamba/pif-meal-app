@@ -180,43 +180,53 @@
             max-width: 24px;
             color: #059669;
             font-weight: bold;
-            font-size: 7px;
+            font-size: 11px;
+            line-height: 1;
+            vertical-align: middle;
             background-color: #f0fdf4;
-            padding: 1px 0;
+            padding: 0;
         }
         .cell-absent {
             width: 18px;
             max-width: 24px;
             color: #e11d48;
             font-weight: bold;
-            font-size: 6.5px;
+            font-size: 10.5px;
+            line-height: 1;
+            vertical-align: middle;
             background-color: #fff1f2;
-            padding: 1px 0;
+            padding: 0;
         }
         .cell-late {
             width: 18px;
             max-width: 24px;
             color: #d97706;
             font-weight: bold;
-            font-size: 6px;
+            font-size: 8.5px;
+            line-height: 1;
+            vertical-align: middle;
             background-color: #fffbeb;
-            padding: 1px 0;
+            padding: 0;
         }
         .cell-apology {
             width: 18px;
             max-width: 24px;
             color: #2563eb;
             font-weight: bold;
-            font-size: 6px;
+            font-size: 8.5px;
+            line-height: 1;
+            vertical-align: middle;
             background-color: #eff6ff;
-            padding: 1px 0;
+            padding: 0;
         }
         .cell-unmarked {
             width: 18px;
             max-width: 24px;
             color: #cbd5e1;
-            font-size: 6px;
-            padding: 1px 0;
+            font-size: 8px;
+            line-height: 1;
+            vertical-align: middle;
+            padding: 0;
         }
 
         /* Summary counters */
