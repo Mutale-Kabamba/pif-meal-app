@@ -56,8 +56,6 @@ class MarkAttendancePage extends Page
     {
         $role = auth()->user()?->role;
         return in_array($role, [
-            User::ROLE_HEAD_OF_PROGRAMMES,
-            User::ROLE_SYSTEM_MANAGER,
             User::ROLE_PROJECT_OFFICER,
             User::ROLE_COACH,
         ]);
